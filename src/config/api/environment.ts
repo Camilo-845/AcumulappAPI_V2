@@ -2,11 +2,13 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const environment = {
-  port: process.env.PORT || "3000",
+  port: process.env.PORT || "3123",
   nodeEnv: process.env.NODE_ENV || "development",
 
   jwtSecret: process.env.JWT_SECRET || "Top_Secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "604800",
+
+  baseUrl: process.env.BASE_URL || "http://localhost:3123",
 
   // db: {
   //     host: process.env.DB_HOST,

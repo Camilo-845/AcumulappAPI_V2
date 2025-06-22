@@ -1,10 +1,16 @@
 import prisma from "../../config/db/prismaClient"; // Asegúrate de que esta ruta sea correcta
+import { PaginationQueryParamsDTO } from "../../core/dtos/pagination.dto";
 import { IBusiness, ICreateBusinessData } from "./Business.model";
 import Prisma from "@prisma/client";
 
 // Define el tipo exacto de Prisma para el modelo Business
 // Asegúrate de que 'Business' (PascalCase) coincida con tu 'model' en schema.prisma
 type PrismaBusinessType = Prisma.Business;
+
+interface BusinessPaginationParams {
+  limit: number;
+  offset: number;
+}
 
 const mapPrismaBusinessToDomain = (
   prismaBusiness: PrismaBusinessType,
@@ -124,5 +130,28 @@ export class BusinessRepository {
       where: { id },
     });
     return mapPrismaBusinessToDomain(deletedBusiness);
+  }
+
+  async findAllBusiness(
+    paginationParams: BusinessPaginationParams,
+  ): Promise<{ business: IBusiness[]; total: number }> {
+    const { limit, offset } = paginationParams;
+
+    const [business, total] = await prisma.$transaction([
+      prisma.business.findMany({
+        where: { fullInformation: true },
+        take: limit,
+        skip: offset,
+        orderBy: { name: "asc" },
+      }),
+      prisma.business.count({
+        where: { fullInformation: true },
+      }),
+    ]);
+
+    return {
+      business: business.map(mapPrismaBusinessToDomain),
+      total,
+    };
   }
 }
