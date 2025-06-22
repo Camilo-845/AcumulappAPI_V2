@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
 import { LoginRequestDTO } from "./DTO/Request";
+import { ClientRegisterRequestDTO } from "./DTO/Request/clientRegister.request.dto";
 
 const accountService = new AccountService();
 
@@ -15,3 +16,13 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json(authResponse);
 });
+
+export const clientRegister = asyncHandler(
+  async (req: Request, res: Response) => {
+    const registerData: ClientRegisterRequestDTO = req.body;
+
+    const authResponse = await accountService.registerClient(registerData);
+
+    return res.status(StatusCodes.OK).json(authResponse);
+  },
+);

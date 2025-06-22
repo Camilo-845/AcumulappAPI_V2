@@ -15,7 +15,7 @@ model ActionTypes {
 
 model AuthProviders {
   id       Int        @id @default(autoincrement())
-  name     String     @db.VarChar(50)
+  name     String     @db.VarChar(50) @unique
   Accounts Accounts[]
 }
 

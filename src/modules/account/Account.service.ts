@@ -3,24 +3,29 @@ import { ApiError } from "../../core";
 import { ClientRepository } from "../client/Client.repository";
 import { CollaboratorRepository } from "../collaborator/Collaborator.repository";
 import { AccountRepository } from "./Account.repository";
+import { AuthProviderRepository } from "../authProvider/AuthProvider.repository";
 import { LoginRequestDTO } from "./DTO/Request";
 import {
   AuthResponseDTO,
   ClientAuthResponseDTO,
   CollaboratorAuthResponseDTO,
 } from "./DTO/Response";
-import { comparePassword } from "../../utils/password";
+import { comparePassword, hashPassword } from "../../utils/password";
 import { signJwt } from "../../utils/jwt";
+import { ClientRegisterRequestDTO } from "./DTO/Request/clientRegister.request.dto";
+import { ICreateAccountData } from "./Account.model";
 
 export class AccountService {
   private accountRepository: AccountRepository;
   private clientRepository: ClientRepository;
   private collaboratorRepository: CollaboratorRepository;
+  private authProviderRepository: AuthProviderRepository;
 
   constructor() {
     this.accountRepository = new AccountRepository();
     this.clientRepository = new ClientRepository();
     this.collaboratorRepository = new CollaboratorRepository();
+    this.authProviderRepository = new AuthProviderRepository();
   }
 
   public async login(loginData: LoginRequestDTO): Promise<AuthResponseDTO> {
@@ -71,14 +76,10 @@ export class AccountService {
     }
 
     // 4. Generar el payload del JWT
-    // El payload debe contener solo la información necesaria para autenticar y autorizar futuras solicitudes
     const jwtPayload = {
       id: account.id,
       email: account.email,
-      // No incluyas el password aquí
-      userType: determinedUserType, // Añade el tipo de usuario al token
-      // Si es colaborador, podrías incluir el roleId o businessId si es para un solo negocio
-      // O puedes dejar que el middleware de autorización lo busque en la DB en cada request
+      userType: determinedUserType,
     };
 
     const token = signJwt(jwtPayload);
@@ -122,5 +123,58 @@ export class AccountService {
       StatusCodes.INTERNAL_SERVER_ERROR,
       "No se pudo determinar el tipo de usuario para la sesión.",
     );
+  }
+
+  public async registerClient(
+    registerData: ClientRegisterRequestDTO,
+  ): Promise<ClientAuthResponseDTO> {
+    const existAccount = await this.accountRepository.findByEmail(
+      registerData.email,
+    );
+    if (existAccount) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Ya existe una cuenta con este email.",
+      );
+    }
+
+    const hashedPassword = await hashPassword(registerData.password);
+
+    const localAuthProvider =
+      await this.authProviderRepository.findByName("local");
+    if (!localAuthProvider) {
+      throw new Error('Proveedor de autenticación "local" no encontrado.');
+    }
+
+    const accountData: ICreateAccountData = {
+      email: registerData.email,
+      fullName: registerData.fullName,
+      password: hashedPassword,
+      idAuthProvider: localAuthProvider.id,
+    };
+
+    const newAccount = await this.accountRepository.create(accountData);
+
+    //Crear el cliente asociado a la cuenta
+    await this.clientRepository.create({ idAccount: newAccount.id });
+
+    const jwtPayload = {
+      id: newAccount.id,
+      email: newAccount.email,
+      userType: "client",
+    };
+
+    const token = signJwt(jwtPayload);
+
+    const response: ClientAuthResponseDTO = {
+      token,
+      account: {
+        id: newAccount.id,
+        email: newAccount.email,
+        fullName: newAccount.fullName,
+        userType: "client",
+      },
+    };
+    return response;
   }
 }

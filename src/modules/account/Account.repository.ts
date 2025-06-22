@@ -43,10 +43,10 @@ export class AccountRepository {
       data: {
         email: data.email,
         fullName: data.fullName,
-        password: data.password, // Asegúrate de que esto ya esté hasheado antes de llamar al repositorio
+        password: data.password,
         idAuthProvider: data.idAuthProvider,
         providerUserId: data.providerUserId,
-        isActive: true, // Valores por defecto, asegúrate que Prisma los maneje si no los envías
+        isActive: true,
         emailVerified: false,
       },
     });
