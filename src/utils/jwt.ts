@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { environment } from "../config/api/environment"; // Correct import path for environment
+import { JwtPayload } from "../types";
 
 const JWT_SECRET = environment.jwtSecret;
 const JWT_EXPIRES_IN = Number(environment.jwtExpiresIn) || 3600;
@@ -11,12 +12,12 @@ export const signJwt = (payload: object): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
-export const verifyJwt = (token: string): string | jwt.JwtPayload => {
+export const verifyJwt = (token: string): JwtPayload => {
   if (!JWT_SECRET) {
     throw new Error("JWT_SECRET no está definido en la configuración.");
   }
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, JWT_SECRET) as JwtPayload;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       throw new Error("Token de autenticación expirado.");
