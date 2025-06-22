@@ -1,2 +1,2 @@
 export * from "./login.request.dto";
-export * from "./clientRegister.request.dto";
+export * from "./localRegister.request.dto";

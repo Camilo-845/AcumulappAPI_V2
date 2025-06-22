@@ -19,8 +19,8 @@ export interface IBusiness {
 }
 
 export interface ICreateBusinessData {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   idLocation?: number;
   logoImage?: string;
   address?: string;

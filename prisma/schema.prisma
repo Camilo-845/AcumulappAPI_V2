@@ -25,7 +25,7 @@ model Business {
   email                   String?                   @db.VarChar(255)
   idLocation              Int?
   logoImage               String?                   @db.VarChar(500)
-  Address                 String?                   @db.VarChar(250)
+  address                 String?                   @db.VarChar(250)
   idPlan                  Int                       @default(1)
   fullInformation         Boolean                   @default(false)
   Locations               Locations?                @relation(fields: [idLocation], references: [id], onDelete: NoAction, onUpdate: NoAction)

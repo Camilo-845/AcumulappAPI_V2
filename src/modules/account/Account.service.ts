@@ -3,6 +3,7 @@ import { ApiError } from "../../core";
 import { ClientRepository } from "../client/Client.repository";
 import { CollaboratorRepository } from "../collaborator/Collaborator.repository";
 import { AccountRepository } from "./Account.repository";
+import { BusinessRepository } from "../business/Business.repository";
 import { AuthProviderRepository } from "../authProvider/AuthProvider.repository";
 import { LoginRequestDTO } from "./DTO/Request";
 import {
@@ -12,7 +13,7 @@ import {
 } from "./DTO/Response";
 import { comparePassword, hashPassword } from "../../utils/password";
 import { signJwt } from "../../utils/jwt";
-import { ClientRegisterRequestDTO } from "./DTO/Request/clientRegister.request.dto";
+import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
 import { ICreateAccountData } from "./Account.model";
 
 export class AccountService {
@@ -20,12 +21,14 @@ export class AccountService {
   private clientRepository: ClientRepository;
   private collaboratorRepository: CollaboratorRepository;
   private authProviderRepository: AuthProviderRepository;
+  private businessRepository: BusinessRepository;
 
   constructor() {
     this.accountRepository = new AccountRepository();
     this.clientRepository = new ClientRepository();
     this.collaboratorRepository = new CollaboratorRepository();
     this.authProviderRepository = new AuthProviderRepository();
+    this.businessRepository = new BusinessRepository();
   }
 
   public async login(loginData: LoginRequestDTO): Promise<AuthResponseDTO> {
@@ -126,7 +129,7 @@ export class AccountService {
   }
 
   public async registerClient(
-    registerData: ClientRegisterRequestDTO,
+    registerData: LocalRegisterRequestDTO,
   ): Promise<ClientAuthResponseDTO> {
     const existAccount = await this.accountRepository.findByEmail(
       registerData.email,
@@ -173,6 +176,72 @@ export class AccountService {
         email: newAccount.email,
         fullName: newAccount.fullName,
         userType: "client",
+      },
+    };
+    return response;
+  }
+  public async registerBusiness(
+    registerData: LocalRegisterRequestDTO,
+  ): Promise<CollaboratorAuthResponseDTO> {
+    const existAccount = await this.accountRepository.findByEmail(
+      registerData.email,
+    );
+    if (existAccount) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Ya existe una cuenta con este email.",
+      );
+    }
+
+    const hashedPassword = await hashPassword(registerData.password);
+
+    const localAuthProvider =
+      await this.authProviderRepository.findByName("local");
+    if (!localAuthProvider) {
+      throw new Error('Proveedor de autenticación "local" no encontrado.');
+    }
+
+    const accountData: ICreateAccountData = {
+      email: registerData.email,
+      fullName: registerData.fullName,
+      password: hashedPassword,
+      idAuthProvider: localAuthProvider.id,
+    };
+
+    const newAccount = await this.accountRepository.create(accountData);
+
+    //Crear el negocio asociad
+    const newBusiness = await this.businessRepository.create({});
+
+    // Crear colaborador owner del negocio
+    await this.collaboratorRepository.create({
+      idAccount: newAccount.id,
+      idBusiness: newBusiness.id,
+      idRol: 1, // Asumiendo que el rol 1 es el de "owner"
+    });
+
+    const jwtPayload = {
+      id: newAccount.id,
+      email: newAccount.email,
+      userType: "collaborator",
+    };
+
+    const token = signJwt(jwtPayload);
+
+    const response: CollaboratorAuthResponseDTO = {
+      token,
+      account: {
+        id: newAccount.id,
+        email: newAccount.email,
+        fullName: newAccount.fullName,
+        userType: "collaborator",
+        collaboratorDetails: [
+          {
+            businessId: newBusiness.id,
+            businessName: newBusiness.name || "N/A",
+            role: "owner",
+          },
+        ],
       },
     };
     return response;
