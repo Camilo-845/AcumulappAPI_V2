@@ -1,0 +1,40 @@
+{
+  "name": "acumulappapi_v2",
+  "version": "1.0.0",
+  "description": "API Rest Acumulapp",
+  "keywords": [
+    "typescript",
+    "nodejs",
+    "express"
+  ],
+  "license": "ISC",
+  "author": "Camilo-845",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "dev": "npx nodemon --exec npx ts-node src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "express-validator": "^7.0.1",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/http-errors": "^2.0.4",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.14.0",
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.7",
+    "typescript": "^5.6.3"
+  }
+}
