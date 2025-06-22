@@ -1,207 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model account {
-  id                      Int                       @id @default(autoincrement())
-  email                   String                    @db.VarChar(255)
-  fullname                String                    @db.VarChar(255)
-  password                String?                   @db.VarChar(255)
-  idauthprovider          Int
-  isactive                Boolean                   @default(true)
-  provideruserid          String?                   @db.VarChar(255)
-  emailverified           Boolean                   @default(false)
-  profileimageurl         String?                   @db.VarChar(500)
-  authproviders           authproviders             @relation(fields: [idauthprovider], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  client                  client?
-  collaborators           collaborators[]
-  collaboratorsactivities collaboratorsactivities[]
-}
-
-model actiontypes {
+model ActionTypes {
   id                      Int                       @id @default(autoincrement())
   name                    String                    @db.VarChar(255)
-  collaboratorsactivities collaboratorsactivities[]
+  CollaboratorsActivities CollaboratorsActivities[]
 }
 
-model authproviders {
-  id      Int       @id @default(autoincrement())
-  name    String    @db.VarChar(50)
-  account account[]
+model AuthProviders {
+  id       Int        @id @default(autoincrement())
+  name     String     @db.VarChar(50)
+  Accounts Accounts[]
 }
 
-model business {
+model Business {
   id                      Int                       @id @default(autoincrement())
   name                    String?                   @db.VarChar(100)
   email                   String?                   @db.VarChar(255)
-  idlocation              Int?
-  logoimage               String?                   @db.VarChar(500)
-  address                 String?                   @db.VarChar(250)
-  idplan                  Int                       @default(1)
-  fullinformation         Boolean                   @default(false)
-  locations               locations?                @relation(fields: [idlocation], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  plans                   plans                     @relation(fields: [idplan], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  businesscategories      businesscategories[]
-  cards                   cards[]
-  collaborators           collaborators[]
-  collaboratorsactivities collaboratorsactivities[]
-  links                   links[]
-  numbers                 numbers[]
-  ratings                 ratings[]
+  idLocation              Int?
+  logoImage               String?                   @db.VarChar(500)
+  Address                 String?                   @db.VarChar(250)
+  idPlan                  Int                       @default(1)
+  fullInformation         Boolean                   @default(false)
+  Locations               Locations?                @relation(fields: [idLocation], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Plans                   Plans                     @relation(fields: [idPlan], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  BusinessCategories      BusinessCategories[]
+  Cards                   Cards[]
+  Collaborators           Collaborators[]
+  CollaboratorsActivities CollaboratorsActivities[]
+  Links                   Links[]
+  Numbers                 Numbers[]
+  Ratings                 Ratings[]
 }
 
-model businesscategories {
-  idbusiness Int
-  idcategory Int
-  business   business   @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  categories categories @relation(fields: [idcategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model BusinessCategories {
+  idBusiness Int
+  idCategory Int
+  Business   Business   @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Categories Categories @relation(fields: [idCategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([idbusiness, idcategory])
+  @@id([idBusiness, idCategory])
 }
 
-model cards {
-  id          Int          @id @default(autoincrement())
-  idbusiness  Int
-  expiration  BigInt
-  maxstamp    Int
-  description String       @db.VarChar(2000)
-  business    business     @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  cardsusers  cardsusers[]
-}
-
-model cardstates {
+model CardStates {
   id         Int          @id @default(autoincrement())
   name       String       @db.VarChar(100)
-  cardsusers cardsusers[]
+  CardsUsers CardsUsers[]
 }
 
-model cardsusers {
+model Cards {
+  id          Int          @id @default(autoincrement())
+  idBusiness  Int
+  expiration  BigInt
+  maxStamp    Int
+  description String       @db.VarChar(2000)
+  Business    Business     @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  CardsUsers  CardsUsers[]
+}
+
+model CardsUsers {
   id             Int        @id @default(autoincrement())
-  idclient       Int
-  idcard         Int
-  idcardstate    Int
-  expirationdate DateTime   @db.Timestamp(6)
-  currentstamps  Int
-  uniquecode     String?    @db.Char(8)
-  cards          cards      @relation(fields: [idcard], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  cardstates     cardstates @relation(fields: [idcardstate], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  client         client     @relation(fields: [idclient], references: [idaccount], onDelete: NoAction, onUpdate: NoAction)
+  idClient       Int
+  idCard         Int
+  idCardState    Int
+  expirationDate DateTime   @db.Timestamp(6)
+  currentStamps  Int
+  UniqueCode     String?    @db.Char(8)
+  CardStates     CardStates @relation(fields: [idCardState], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Cards          Cards      @relation(fields: [idCard], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Client         Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model categories {
+model Categories {
   id                 Int                  @id @default(autoincrement())
   name               String               @db.VarChar(255)
-  businesscategories businesscategories[]
-  preferences        preferences[]
+  BusinessCategories BusinessCategories[]
+  Preferences        Preferences[]
 }
 
-model client {
-  idaccount          Int                  @id
-  cardsusers         cardsusers[]
-  account            account              @relation(fields: [idaccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  preferences        preferences[]
-  ratings            ratings[]
-  usersnotifications usersnotifications[]
+model Collaborators {
+  idAccount  Int
+  idBusiness Int
+  idRol      Int
+  Account    Accounts @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Roles      Roles    @relation(fields: [idRol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([idAccount, idBusiness])
 }
 
-model collaborators {
-  idaccount  Int
-  idbusiness Int
-  idrol      Int
-  account    account  @relation(fields: [idaccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  business   business @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  roles      roles    @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([idaccount, idbusiness])
-}
-
-model collaboratorsactivities {
+model CollaboratorsActivities {
   id           Int         @id @default(autoincrement())
-  idaccount    Int
-  idbusiness   Int
-  idactiontype Int
-  oldvalue     String?     @db.VarChar(255)
-  newvalue     String?     @db.VarChar(255)
-  account      account     @relation(fields: [idaccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  actiontypes  actiontypes @relation(fields: [idactiontype], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  business     business    @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  idAccount    Int
+  idBusiness   Int
+  idActionType Int
+  oldValue     String?     @db.VarChar(255)
+  newValue     String?     @db.VarChar(255)
+  Account      Accounts    @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ActionTypes  ActionTypes @relation(fields: [idActionType], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Business     Business    @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model links {
+model Links {
   id         Int      @id @default(autoincrement())
-  idbusiness Int
+  idBusiness Int
   value      String   @db.VarChar(500)
-  business   business @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model locations {
-  id              Int           @id @default(autoincrement())
-  idfather        Int
-  idlocationtype  Int
-  name            String        @db.VarChar(255)
-  business        business[]
-  locations       locations     @relation("locationsTolocations", fields: [idfather], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  other_locations locations[]   @relation("locationsTolocations")
-  locationtypes   locationtypes @relation(fields: [idlocationtype], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model locationtypes {
+model LocationTypes {
   id        Int         @id @default(autoincrement())
   name      String      @db.VarChar(150)
-  locations locations[]
+  Locations Locations[]
 }
 
-model notifications {
+model Locations {
+  id              Int           @id @default(autoincrement())
+  idFather        Int
+  idLocationType  Int
+  name            String        @db.VarChar(255)
+  Business        Business[]
+  Locations       Locations     @relation("LocationsToLocations", fields: [idFather], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_Locations Locations[]   @relation("LocationsToLocations")
+  LocationTypes   LocationTypes @relation(fields: [idLocationType], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Notifications {
   id                 Int                  @id @default(autoincrement())
   content            String               @db.VarChar(500)
   link               String?              @db.VarChar(500)
-  usersnotifications usersnotifications[]
+  UsersNotifications UsersNotifications[]
 }
 
-model numbers {
+model Numbers {
   id         Int      @id @default(autoincrement())
-  idbusiness Int
+  idBusiness Int
   value      String   @db.VarChar(20)
-  business   business @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model plans {
+model Plans {
   id       Int        @id @default(autoincrement())
   name     String     @db.VarChar(255)
-  business business[]
+  Business Business[]
 }
 
-model preferences {
-  idclient   Int        @default(autoincrement())
-  idcategory Int
-  categories categories @relation(fields: [idcategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  client     client     @relation(fields: [idclient], references: [idaccount], onDelete: NoAction, onUpdate: NoAction)
+model Preferences {
+  idClient   Int        @default(autoincrement())
+  idCategory Int
+  Categories Categories @relation(fields: [idCategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Client     Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([idclient, idcategory])
+  @@id([idClient, idCategory])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model ratings {
+model Ratings {
   id         Int      @id @default(autoincrement())
-  idclient   Int
-  idbusiness Int
+  idClient   Int
+  idBusiness Int
   valoration Int      @default(5) @db.SmallInt
-  business   business @relation(fields: [idbusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  client     client   @relation(fields: [idclient], references: [idaccount], onDelete: NoAction, onUpdate: NoAction)
+  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Client     Clients  @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model roles {
+model Roles {
   id            Int             @id @default(autoincrement())
   name          String          @unique @db.VarChar(100)
-  collaborators collaborators[]
+  Collaborators Collaborators[]
 }
 
-model usersnotifications {
+model UsersNotifications {
   id             Int           @id @default(autoincrement())
-  idnotification Int
-  idclient       Int
-  client         client        @relation(fields: [idclient], references: [idaccount], onDelete: NoAction, onUpdate: NoAction)
-  notifications  notifications @relation(fields: [idnotification], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  idNotification Int
+  idClient       Int
+  Client         Clients       @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
+  Notifications  Notifications @relation(fields: [idNotification], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Accounts {
+  id                      Int                       @id @default(autoincrement())
+  email                   String                    @unique @db.VarChar(255)
+  fullName                String                    @db.VarChar(255)
+  password                String?                   @db.VarChar(255)
+  idAuthProvider          Int
+  isActive                Boolean                   @default(true)
+  providerUserId          String?                   @db.VarChar(255)
+  emailVerified           Boolean                   @default(false)
+  profileImageURL         String?                   @db.VarChar(500)
+  AuthProviders           AuthProviders             @relation(fields: [idAuthProvider], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Clients                 Clients?
+  Collaborators           Collaborators[]
+  CollaboratorsActivities CollaboratorsActivities[]
+}
+
+model Clients {
+  idAccount          Int                  @id
+  CardsUsers         CardsUsers[]
+  Accounts           Accounts             @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Preferences        Preferences[]
+  Ratings            Ratings[]
+  UsersNotifications UsersNotifications[]
 }

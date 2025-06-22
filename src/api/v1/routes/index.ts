@@ -1,5 +1,6 @@
 import { Router } from "express";
 import exampleRoutes from "./example.routes";
+import accountRoutes from "../../../modules/account/Account.routes";
 
 const router = Router();
 
@@ -7,6 +8,6 @@ const router = Router();
 router.use("/example", exampleRoutes);
 
 // Aquí montarías otras rutas de la v1
-// router.use('/products', productRoutes);
+router.use("/auth", accountRoutes);
 
 export default router;
