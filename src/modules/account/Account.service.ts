@@ -5,8 +5,13 @@ import { CollaboratorRepository } from "../collaborator/Collaborator.repository"
 import { AccountRepository } from "./Account.repository";
 import { BusinessRepository } from "../business/Business.repository";
 import { AuthProviderRepository } from "../authProvider/AuthProvider.repository";
-import { LoginRequestDTO } from "./DTO/Request";
 import {
+  getDetailsByEmailDTO,
+  getDetailsByIdDTO,
+  LoginRequestDTO,
+} from "./DTO/Request";
+import {
+  AccountDetailsResponseDTO,
   AuthResponseDTO,
   ClientAuthResponseDTO,
   CollaboratorAuthResponseDTO,
@@ -17,6 +22,9 @@ import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto
 import { ICreateAccountData } from "./Account.model";
 
 export class AccountService {
+  getDetailsById(accountId: number) {
+    throw new Error("Method not implemented.");
+  }
   private accountRepository: AccountRepository;
   private clientRepository: ClientRepository;
   private collaboratorRepository: CollaboratorRepository;
@@ -245,5 +253,38 @@ export class AccountService {
       },
     };
     return response;
+  }
+
+  public async getAccountById(
+    data: getDetailsByIdDTO,
+  ): Promise<AccountDetailsResponseDTO> {
+    const account = await this.accountRepository.findById(data.id);
+    if (!account) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Cuenta no encontrada.");
+    }
+    return {
+      id: account.id,
+      email: account.email,
+      fullName: account.fullName,
+      isActive: account.isActive,
+      emailVerified: account.emailVerified,
+      profileImageURL: account.profileImageURL || null,
+    };
+  }
+  public async getAccountByEmail(
+    data: getDetailsByEmailDTO,
+  ): Promise<AccountDetailsResponseDTO> {
+    const account = await this.accountRepository.findByEmail(data.email);
+    if (!account) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Cuenta no encontrada.");
+    }
+    return {
+      id: account.id,
+      email: account.email,
+      fullName: account.fullName,
+      isActive: account.isActive,
+      emailVerified: account.emailVerified,
+      profileImageURL: account.profileImageURL || null,
+    };
   }
 }

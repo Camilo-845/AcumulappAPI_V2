@@ -1,10 +1,14 @@
 // src/api/v1/controllers/auth.controller.ts
 
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
-import { LoginRequestDTO } from "./DTO/Request";
+import {
+  getDetailsByEmailDTO,
+  getDetailsByIdDTO,
+  LoginRequestDTO,
+} from "./DTO/Request";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
 
 const accountService = new AccountService();
@@ -28,5 +32,22 @@ export const businessRegister = asyncHandler(
     const registerData: LocalRegisterRequestDTO = req.body;
     const authResponse = await accountService.registerBusiness(registerData);
     return res.status(StatusCodes.OK).json(authResponse);
+  },
+);
+
+export const getAccountDetailsById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const accountId = Number(req.params.id);
+    const data: getDetailsByIdDTO = { id: accountId };
+    const accountDetails = await accountService.getAccountById(data);
+    return res.status(StatusCodes.OK).json(accountDetails);
+  },
+);
+
+export const getAccountDetailsByEmail = asyncHandler(
+  async (req: Request, res: Response) => {
+    const data: getDetailsByEmailDTO = req.body;
+    const accountDetails = await accountService.getAccountByEmail(data);
+    return res.status(StatusCodes.OK).json(accountDetails);
   },
 );
