@@ -1,5 +1,4 @@
 import prisma from "../../config/db/prismaClient"; // Asegúrate de que esta ruta sea correcta
-import { PaginationQueryParamsDTO } from "../../core/dtos/pagination.dto";
 import { IBusiness, ICreateBusinessData } from "./Business.model";
 import Prisma from "@prisma/client";
 
@@ -41,6 +40,11 @@ export class BusinessRepository {
       include: {
         Locations: true, // Incluye el objeto completo de la ubicación
         Plans: true, // Incluye el objeto completo del plan
+        BusinessCategories: {
+          include: {
+            Categories: true,
+          },
+        },
         // Agrega otras relaciones aquí si las necesitas (ej. Cards, BusinessCategories, etc.)
       },
     });
@@ -73,6 +77,15 @@ export class BusinessRepository {
             id: business.Plans.id,
             name: business.Plans.name,
           }
+        : null,
+
+      categories: business.BusinessCategories
+        ? business.BusinessCategories.map((el) => {
+            return {
+              id: el.Categories.id,
+              name: el.Categories.name,
+            };
+          })
         : null,
       // Mapea otras relaciones si las incluiste en la consulta
     } as IBusiness; // Cast aquí para simplificar el ejemplo, idealmente un mapeador dedicado
@@ -137,12 +150,19 @@ export class BusinessRepository {
   ): Promise<{ business: IBusiness[]; total: number }> {
     const { limit, offset } = paginationParams;
 
-    const [business, total] = await prisma.$transaction([
+    var [business, total] = await prisma.$transaction([
       prisma.business.findMany({
         where: { fullInformation: true },
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
+        include: {
+          BusinessCategories: {
+            include: {
+              Categories: true,
+            },
+          },
+        },
       }),
       prisma.business.count({
         where: { fullInformation: true },
@@ -150,7 +170,27 @@ export class BusinessRepository {
     ]);
 
     return {
-      business: business.map(mapPrismaBusinessToDomain),
+      business: business.map((el) => {
+        return {
+          id: el.id,
+          name: el.name,
+          email: el.email,
+          idLocation: el.idLocation,
+          logoImage: el.logoImage,
+          address: el.address,
+          idPlan: el.idPlan,
+          fullInformation: el.fullInformation,
+          categories: el.BusinessCategories
+            ? el.BusinessCategories.map((el) => {
+                return {
+                  id: el.Categories.id,
+                  name: el.Categories.name,
+                };
+              })
+            : null,
+          // Mapea otras relaciones si las incluiste en la consulta
+        }; // Cast aquí para simplificar el ejemplo, idealmente un mapeador dedicado
+      }),
       total,
     };
   }

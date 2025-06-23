@@ -15,7 +15,7 @@ model ActionTypes {
 
 model AuthProviders {
   id       Int        @id @default(autoincrement())
-  name     String     @db.VarChar(50) @unique
+  name     String     @unique @db.VarChar(50)
   Accounts Accounts[]
 }
 
@@ -50,7 +50,7 @@ model BusinessCategories {
 
 model CardStates {
   id         Int          @id @default(autoincrement())
-  name       String       @db.VarChar(100)
+  name       String       @unique @db.VarChar(100)
   CardsUsers CardsUsers[]
 }
 
@@ -79,7 +79,7 @@ model CardsUsers {
 
 model Categories {
   id                 Int                  @id @default(autoincrement())
-  name               String               @db.VarChar(255)
+  name               String               @unique @db.VarChar(255)
   BusinessCategories BusinessCategories[]
   Preferences        Preferences[]
 }
@@ -116,7 +116,7 @@ model Links {
 
 model LocationTypes {
   id        Int         @id @default(autoincrement())
-  name      String      @db.VarChar(150)
+  name      String      @unique @db.VarChar(150)
   Locations Locations[]
 }
 
@@ -147,7 +147,7 @@ model Numbers {
 
 model Plans {
   id       Int        @id @default(autoincrement())
-  name     String     @db.VarChar(255)
+  name     String     @unique @db.VarChar(255)
   Business Business[]
 }
 

@@ -1,5 +1,3 @@
-// src/modules/auth-provider/AuthProviders.repository.ts
-
 import prisma from "../../config/db/prismaClient"; // Asegúrate de que esta ruta sea correcta
 import Prisma from "@prisma/client";
 import { IAuthProvider } from "./AuthProvider.model";

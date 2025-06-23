@@ -1,5 +1,4 @@
-// deberías importarlas aquí y añadirlas a la interfaz IBusiness.
-
+import { IBusinessCategory } from "../businessCategories/BusinessCategories.model";
 import { ILocation } from "../location/Location.model";
 import { IPlan } from "../plan/Plan.model";
 
@@ -16,6 +15,7 @@ export interface IBusiness {
   // Relaciones (opcionales para el modelo de dominio si no siempre se cargan)
   location?: ILocation | null; // Objeto de la ubicación asociada
   plan?: IPlan | null; // Objeto del plan asociado
+  categories?: IBusinessCategory[] | null;
 }
 
 export interface ICreateBusinessData {
