@@ -2,7 +2,10 @@ import { Router } from "express";
 import { authenticateToken } from "../../middelwares/auth.middleware";
 import { paginationQueryParams } from "../../core/dtos/pagination.dto";
 import validate from "../../middelwares/validation";
-import { getAllBusiness } from "./Business.controller";
+import {
+  getAllBusiness,
+  getAllBusinessCategories,
+} from "./Business.controller";
 import z from "zod";
 import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
 
@@ -19,5 +22,7 @@ router.get(
   validate(businessListRouteSchema),
   getAllBusiness,
 );
+
+router.get("/categories", authenticateToken, getAllBusinessCategories);
 
 export default router;

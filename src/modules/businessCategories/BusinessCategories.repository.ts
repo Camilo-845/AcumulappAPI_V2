@@ -30,4 +30,8 @@ export class BusinessCategoriesRepository {
       ? mapPrismaBusinessCategoryToDomain(businessCategory)
       : null;
   }
+
+  async findAll(): Promise<IBusinessCategory[]> {
+    return await prisma.categories.findMany();
+  }
 }

@@ -3,15 +3,19 @@ import {
   PaginatedResponse,
   PaginationQueryParamsDTO,
 } from "../../core/dtos/pagination.dto";
+import { IBusinessCategory } from "../businessCategories/BusinessCategories.model";
+import { BusinessCategoriesRepository } from "../businessCategories/BusinessCategories.repository";
 import { IBusiness } from "./Business.model";
 import { BusinessRepository } from "./Business.repository";
 import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
 
 export class BusinessService {
   private businessRepository: BusinessRepository;
+  private businessCatefogoriesRepository: BusinessCategoriesRepository;
 
   constructor() {
     this.businessRepository = new BusinessRepository();
+    this.businessCatefogoriesRepository = new BusinessCategoriesRepository();
   }
 
   public async getAllBusiness(
@@ -54,5 +58,9 @@ export class BusinessService {
         last_page: getPageUrl(totalPages, size),
       },
     };
+  }
+
+  public async getAllCategories(): Promise<IBusinessCategory[]> {
+    return await this.businessCatefogoriesRepository.findAll();
   }
 }

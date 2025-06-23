@@ -24,3 +24,10 @@ export const getAllBusiness = asyncHandler(
     return res.status(StatusCodes.OK).json(paginatedResponse);
   },
 );
+
+export const getAllBusinessCategories = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const businessCategories = await businessService.getAllCategories();
+    return res.status(StatusCodes.OK).json(businessCategories);
+  },
+);
