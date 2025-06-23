@@ -5,6 +5,7 @@ import {
 } from "../../core/dtos/pagination.dto";
 import { IBusiness } from "./Business.model";
 import { BusinessRepository } from "./Business.repository";
+import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
 
 export class BusinessService {
   private businessRepository: BusinessRepository;
@@ -15,6 +16,7 @@ export class BusinessService {
 
   public async getAllBusiness(
     paginationParams: PaginationQueryParamsDTO,
+    filters: GetBusinessFiltersRequestDTO,
   ): Promise<PaginatedResponse<IBusiness>> {
     const { page, size } = paginationParams;
     const baseUrl = `${environment.baseUrl}/api/v1/business`;
@@ -22,10 +24,13 @@ export class BusinessService {
     const offset = (page - 1) * size;
     const limit = size;
 
-    const { business, total } = await this.businessRepository.findAllBusiness({
-      limit,
-      offset,
-    });
+    const { business, total } = await this.businessRepository.findAllBusiness(
+      {
+        limit,
+        offset,
+      },
+      filters,
+    );
 
     const totalPages = Math.ceil(total / size);
 

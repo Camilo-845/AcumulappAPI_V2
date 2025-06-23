@@ -1,6 +1,7 @@
 import prisma from "../../config/db/prismaClient"; // Asegúrate de que esta ruta sea correcta
 import { IBusiness, ICreateBusinessData } from "./Business.model";
 import Prisma from "@prisma/client";
+import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
 
 // Define el tipo exacto de Prisma para el modelo Business
 // Asegúrate de que 'Business' (PascalCase) coincida con tu 'model' en schema.prisma
@@ -147,12 +148,33 @@ export class BusinessRepository {
 
   async findAllBusiness(
     paginationParams: BusinessPaginationParams,
+    filters: GetBusinessFiltersRequestDTO,
   ): Promise<{ business: IBusiness[]; total: number }> {
     const { limit, offset } = paginationParams;
+    const { name, category } = filters;
 
     var [business, total] = await prisma.$transaction([
       prisma.business.findMany({
-        where: { fullInformation: true },
+        where: {
+          fullInformation: true,
+          // Filtro por nombre (si se proporciona)
+          ...(name && {
+            name: {
+              contains: name, // Busca nombres que contengan el string (case-insensitive)
+              mode: "insensitive",
+            },
+          }),
+
+          // Filtro por categoría (si se proporciona)
+          ...(category && {
+            BusinessCategories: {
+              some: {
+                // 'some' es para relaciones uno a muchos o muchos a muchos
+                idCategory: category, // Busca negocios que tengan AL MENOS UNA categoría con ese ID
+              },
+            },
+          }),
+        },
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
@@ -165,7 +187,26 @@ export class BusinessRepository {
         },
       }),
       prisma.business.count({
-        where: { fullInformation: true },
+        where: {
+          fullInformation: true,
+          // Filtro por nombre (si se proporciona)
+          ...(name && {
+            name: {
+              contains: name, // Busca nombres que contengan el string (case-insensitive)
+              mode: "insensitive",
+            },
+          }),
+
+          // Filtro por categoría (si se proporciona)
+          ...(category && {
+            BusinessCategories: {
+              some: {
+                // 'some' es para relaciones uno a muchos o muchos a muchos
+                idCategory: category, // Busca negocios que tengan AL MENOS UNA categoría con ese ID
+              },
+            },
+          }),
+        },
       }),
     ]);
 

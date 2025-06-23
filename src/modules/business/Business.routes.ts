@@ -4,6 +4,7 @@ import { paginationQueryParams } from "../../core/dtos/pagination.dto";
 import validate from "../../middelwares/validation";
 import { getAllBusiness } from "./Business.controller";
 import z from "zod";
+import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ const businessListRouteSchema = z.object({
 router.get(
   "/",
   authenticateToken,
+  validate(getBusinessFiltersRequestSchema),
   validate(businessListRouteSchema),
   getAllBusiness,
 );
