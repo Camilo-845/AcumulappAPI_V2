@@ -5,6 +5,7 @@ import validate from "../../middelwares/validation";
 import {
   getAllBusiness,
   getAllBusinessCategories,
+  getBusinessById,
 } from "./Business.controller";
 import z from "zod";
 import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
@@ -24,5 +25,6 @@ router.get(
 );
 
 router.get("/categories", authenticateToken, getAllBusinessCategories);
+router.get("/:id", authenticateToken, getBusinessById);
 
 export default router;

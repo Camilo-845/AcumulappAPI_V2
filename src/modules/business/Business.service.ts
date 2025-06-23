@@ -63,4 +63,8 @@ export class BusinessService {
   public async getAllCategories(): Promise<IBusinessCategory[]> {
     return await this.businessCatefogoriesRepository.findAll();
   }
+
+  public async getBusinessById(id: number): Promise<IBusiness | null> {
+    return await this.businessRepository.findByIdWithRelations(id);
+  }
 }

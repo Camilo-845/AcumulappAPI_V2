@@ -31,3 +31,11 @@ export const getAllBusinessCategories = asyncHandler(
     return res.status(StatusCodes.OK).json(businessCategories);
   },
 );
+
+export const getBusinessById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const businessId = Number(req.params.id);
+    const business = await businessService.getBusinessById(businessId);
+    return res.status(StatusCodes.OK).json(business);
+  },
+);
