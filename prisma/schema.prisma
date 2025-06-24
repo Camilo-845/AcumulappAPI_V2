@@ -49,32 +49,19 @@ model BusinessCategories {
 }
 
 model CardStates {
-  id         Int          @id @default(autoincrement())
-  name       String       @unique @db.VarChar(100)
-  CardsUsers CardsUsers[]
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(100)
+  CardsClients CardsClients[]
 }
 
 model Cards {
-  id          Int          @id @default(autoincrement())
-  idBusiness  Int
-  expiration  BigInt
-  maxStamp    Int
-  description String       @db.VarChar(2000)
-  Business    Business     @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  CardsUsers  CardsUsers[]
-}
-
-model CardsUsers {
-  id             Int        @id @default(autoincrement())
-  idClient       Int
-  idCard         Int
-  idCardState    Int
-  expirationDate DateTime   @db.Timestamp(6)
-  currentStamps  Int
-  UniqueCode     String?    @db.Char(8)
-  CardStates     CardStates @relation(fields: [idCardState], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Cards          Cards      @relation(fields: [idCard], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Client         Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
+  id           Int            @id @default(autoincrement())
+  idBusiness   Int
+  expiration   BigInt
+  maxStamp     Int
+  description  String         @db.VarChar(2000)
+  Business     Business       @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  CardsClients CardsClients[]
 }
 
 model Categories {
@@ -132,10 +119,10 @@ model Locations {
 }
 
 model Notifications {
-  id                 Int                  @id @default(autoincrement())
-  content            String               @db.VarChar(500)
-  link               String?              @db.VarChar(500)
-  UsersNotifications UsersNotifications[]
+  id                    Int                     @id @default(autoincrement())
+  content               String                  @db.VarChar(500)
+  link                  String?                 @db.VarChar(500)
+  AccountsNotifications AccountsNotifications[]
 }
 
 model Numbers {
@@ -177,14 +164,6 @@ model Roles {
   Collaborators Collaborators[]
 }
 
-model UsersNotifications {
-  id             Int           @id @default(autoincrement())
-  idNotification Int
-  idClient       Int
-  Client         Clients       @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
-  Notifications  Notifications @relation(fields: [idNotification], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
 model Accounts {
   id                      Int                       @id @default(autoincrement())
   email                   String                    @unique @db.VarChar(255)
@@ -196,16 +175,37 @@ model Accounts {
   emailVerified           Boolean                   @default(false)
   profileImageURL         String?                   @db.VarChar(500)
   AuthProviders           AuthProviders             @relation(fields: [idAuthProvider], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  AccountsNotifications   AccountsNotifications[]
   Clients                 Clients?
   Collaborators           Collaborators[]
   CollaboratorsActivities CollaboratorsActivities[]
 }
 
 model Clients {
-  idAccount          Int                  @id
-  CardsUsers         CardsUsers[]
-  Accounts           Accounts             @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Preferences        Preferences[]
-  Ratings            Ratings[]
-  UsersNotifications UsersNotifications[]
+  idAccount    Int            @id
+  CardsClients CardsClients[]
+  Accounts     Accounts       @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Preferences  Preferences[]
+  Ratings      Ratings[]
+}
+
+model AccountsNotifications {
+  id             Int           @id @default(autoincrement())
+  idNotification Int
+  idAccount      Int
+  Accounts       Accounts      @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Notifications  Notifications @relation(fields: [idNotification], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CardsClients {
+  id             Int        @id @default(autoincrement())
+  idClient       Int
+  idCard         Int
+  idCardState    Int
+  expirationDate DateTime   @db.Timestamp(6)
+  UniqueCode     String?    @unique @db.Char(8)
+  currentStamps  Int
+  CardStates     CardStates @relation(fields: [idCardState], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Cards          Cards      @relation(fields: [idCard], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Clients        Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
 }
