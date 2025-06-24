@@ -7,7 +7,8 @@ WORKDIR /usr/src/app
 
 # Instalar dependencias de la app
 COPY package.json /usr/src/app/
-RUN npm install --silent
+COPY package-lock.json /usr/src/app/
+RUN npm ci --silent
 
 # Copiar el código fuente
 COPY . /usr/src/app
@@ -23,4 +24,4 @@ RUN ls -la /usr/src/app
 EXPOSE 8080
 
 # Comando para ejecutar la app, usando wait-for-it
-CMD ["node", "build/index.js"]
+CMD ["node", "dist/server.js"]

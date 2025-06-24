@@ -12,9 +12,10 @@
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "tsc",
+    "build": "npm run prisma:generate && tsc",
     "dev": "npx nodemon --exec npx ts-node src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:generate": "npx prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.10.1",
