@@ -1,4 +1,4 @@
-import { ApiError } from "@/core";
+import { ApiError } from "../../core";
 import { environment } from "../../config/api";
 import {
   PaginatedResponse,

@@ -1,6 +1,6 @@
 import { ErrorRequestHandler } from "express";
-import ApiError from "@core/errors/apiError";
-import { environment } from "@config/api";
+import ApiError from "../core/errors/apiError";
+import { environment } from "../config/api";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof ApiError) {

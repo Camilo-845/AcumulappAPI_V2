@@ -1,4 +1,4 @@
-import prisma from "@config/db/prismaClient";
+import prisma from "../../config/db/prismaClient";
 import { IBusiness, ICreateBusinessData } from "./Business.model";
 import {
   Business,
