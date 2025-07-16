@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import apiV1Routes from "./api/v1/routes"; // Importamos el enrutador principal v1
 import cors from "cors";
 import morgan from "morgan";
+import { errorHandler } from "./middelwares";
 
 class App {
   public app: Application;
@@ -31,6 +32,9 @@ class App {
 
     // Usamos el enrutador de la API v1 con su prefijo
     this.app.use("/api/v1", apiV1Routes);
+
+    // Middleware de manejo de errores (debe ir al final)
+    this.app.use(errorHandler);
   }
 }
 
