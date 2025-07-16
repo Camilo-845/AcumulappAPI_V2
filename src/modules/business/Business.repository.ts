@@ -1,19 +1,52 @@
-import prisma from "../../config/db/prismaClient"; // Asegúrate de que esta ruta sea correcta
+import prisma from "@config/db/prismaClient";
 import { IBusiness, ICreateBusinessData } from "./Business.model";
-import Prisma from "@prisma/client";
+import {
+  Business,
+  Locations,
+  Plans,
+  BusinessCategories,
+  Categories,
+  Prisma,
+} from "@prisma/client";
 import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
+import { ILocation } from "../location/Location.model";
 
-// Define el tipo exacto de Prisma para el modelo Business
-// Asegúrate de que 'Business' (PascalCase) coincida con tu 'model' en schema.prisma
-type PrismaBusinessType = Prisma.Business;
+// Define el tipo extendido para incluir las relaciones
+type PrismaBusinessWithRelations = Business & {
+  Locations?: (Locations & { Locations?: Locations | null }) | null;
+  Plans?: Plans | null;
+  BusinessCategories?: (BusinessCategories & {
+    Categories: Categories;
+  })[];
+};
 
 interface BusinessPaginationParams {
   limit: number;
   offset: number;
 }
 
+// --- MAPPER FUNCTIONS ---
+
+const mapPrismaLocationToDomain = (
+  prismaLocation: Locations & { Locations?: Locations | null },
+): ILocation => {
+  const location: ILocation = {
+    id: prismaLocation.id,
+    name: prismaLocation.name,
+    idFather: prismaLocation.idFather,
+    idLocationType: prismaLocation.idLocationType,
+  };
+
+  // Mapeo recursivo para el padre
+  if (prismaLocation.Locations) {
+    location.father = mapPrismaLocationToDomain(prismaLocation.Locations);
+  }
+
+  return location;
+};
+
 const mapPrismaBusinessToDomain = (
-  prismaBusiness: PrismaBusinessType,
+  prismaBusiness: PrismaBusinessWithRelations,
 ): IBusiness => {
   return {
     id: prismaBusiness.id,
@@ -24,14 +57,26 @@ const mapPrismaBusinessToDomain = (
     address: prismaBusiness.address,
     idPlan: prismaBusiness.idPlan,
     fullInformation: prismaBusiness.fullInformation,
+    location: prismaBusiness.Locations
+      ? mapPrismaLocationToDomain(prismaBusiness.Locations)
+      : null,
+    plan: prismaBusiness.Plans
+      ? { id: prismaBusiness.Plans.id, name: prismaBusiness.Plans.name }
+      : null,
+    categories: prismaBusiness.BusinessCategories?.map(
+      (bc: BusinessCategories & { Categories: Categories }) => ({
+        id: bc.Categories.id,
+        name: bc.Categories.name,
+      }),
+    ),
   };
 };
 
+// --- REPOSITORY CLASS ---
+
 export class BusinessRepository {
   async findById(id: number): Promise<IBusiness | null> {
-    const business = await prisma.business.findUnique({
-      where: { id },
-    });
+    const business = await prisma.business.findUnique({ where: { id } });
     return business ? mapPrismaBusinessToDomain(business) : null;
   }
 
@@ -39,110 +84,47 @@ export class BusinessRepository {
     const business = await prisma.business.findUnique({
       where: { id },
       include: {
-        Locations: true, // Incluye el objeto completo de la ubicación
-        Plans: true, // Incluye el objeto completo del plan
+        Plans: true,
         BusinessCategories: {
           include: {
             Categories: true,
           },
         },
-        // Agrega otras relaciones aquí si las necesitas (ej. Cards, BusinessCategories, etc.)
+        Locations: {
+          include: {
+            Locations: true, // Incluir el padre de la ubicación
+          },
+        },
       },
     });
 
-    if (!business) {
-      return null;
-    }
-
-    // Mapea el resultado de Prisma a tu dominio IBusiness, incluyendo las relaciones
-    return {
-      id: business.id,
-      name: business.name,
-      email: business.email,
-      idLocation: business.idLocation,
-      logoImage: business.logoImage,
-      address: business.address,
-      idPlan: business.idPlan,
-      fullInformation: business.fullInformation,
-      // Mapeo de relaciones. Asegúrate de tener un mapPrismaLocationToDomain y mapPrismaPlanToDomain
-      location: business.Locations
-        ? {
-            id: business.Locations.id,
-            name: business.Locations.name,
-            idFather: business.Locations.idFather,
-            idLocationType: business.Locations.idLocationType,
-          }
-        : null,
-      plan: business.Plans
-        ? {
-            id: business.Plans.id,
-            name: business.Plans.name,
-          }
-        : null,
-
-      categories: business.BusinessCategories
-        ? business.BusinessCategories.map((el) => {
-            return {
-              id: el.Categories.id,
-              name: el.Categories.name,
-            };
-          })
-        : null,
-      // Mapea otras relaciones si las incluiste en la consulta
-    } as IBusiness; // Cast aquí para simplificar el ejemplo, idealmente un mapeador dedicado
+    return business ? mapPrismaBusinessToDomain(business) : null;
   }
 
   async create(data: ICreateBusinessData): Promise<IBusiness> {
-    const newBusiness = await prisma.business.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        logoImage: data.logoImage,
-        address: data.address,
-        fullInformation: data.fullInformation ?? false,
-        idPlan: data.idPlan ?? 1,
-        ...(data.idLocation && {
-          Location: {
-            connect: { id: data.idLocation },
-          },
-        }),
+    const createData: Prisma.BusinessCreateInput = {
+      name: data.name,
+      email: data.email,
+      logoImage: data.logoImage,
+      address: data.address,
+      fullInformation: data.fullInformation ?? false,
+      Plans: {
+        connect: { id: data.idPlan ?? 1 },
       },
-    });
+    };
+
+    if (data.idLocation) {
+      createData.Locations = {
+        connect: { id: data.idLocation },
+      };
+    }
+
+    const newBusiness = await prisma.business.create({ data: createData });
     return mapPrismaBusinessToDomain(newBusiness);
   }
 
-  // async update(
-  //   id: number,
-  //   data: IUpdateBusinessData,
-  // ): Promise<IBusiness | null> {
-  //   const updatedBusiness = await prisma.business.update({
-  //     where: { id },
-  //     data: {
-  //       name: data.name,
-  //       email: data.email,
-  //       idLocation: data.idLocation,
-  //       logoImage: data.logoImage,
-  //       address: data.address,
-  //       idPlan: data.idPlan,
-  //       fullInformation: data.fullInformation,
-  //       // Si idLocation se actualiza, podrías necesitar 'connect' aquí
-  //       ...(data.idLocation !== undefined &&
-  //         data.idLocation !== null && {
-  //           Location: {
-  //             connect: { id: data.idLocation },
-  //           },
-  //         }),
-  //       // Si idLocation se establece a null, podrías necesitar 'disconnect' o 'set'
-  //       // ...(data.idLocation === null && { Location: { disconnect: true } }),
-  //     },
-  //   });
-  //   return mapPrismaBusinessToDomain(updatedBusiness);
-  // }
-
   async delete(id: number): Promise<IBusiness> {
-    const deletedBusiness = await prisma.business.delete({
-      where: { id },
-    });
+    const deletedBusiness = await prisma.business.delete({ where: { id } });
     return mapPrismaBusinessToDomain(deletedBusiness);
   }
 
@@ -153,86 +135,32 @@ export class BusinessRepository {
     const { limit, offset } = paginationParams;
     const { name, category } = filters;
 
-    var [business, total] = await prisma.$transaction([
-      prisma.business.findMany({
-        where: {
-          fullInformation: true,
-          // Filtro por nombre (si se proporciona)
-          ...(name && {
-            name: {
-              contains: name, // Busca nombres que contengan el string (case-insensitive)
-              mode: "insensitive",
-            },
-          }),
+    const whereClause: Prisma.BusinessWhereInput = {
+      fullInformation: true,
+      ...(name && { name: { contains: name, mode: "insensitive" } }),
+      ...(category && {
+        BusinessCategories: { some: { idCategory: category } },
+      }),
+    };
 
-          // Filtro por categoría (si se proporciona)
-          ...(category && {
-            BusinessCategories: {
-              some: {
-                // 'some' es para relaciones uno a muchos o muchos a muchos
-                idCategory: category, // Busca negocios que tengan AL MENOS UNA categoría con ese ID
-              },
-            },
-          }),
-        },
+    const [businesses, total] = await prisma.$transaction([
+      prisma.business.findMany({
+        where: whereClause,
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
         include: {
-          BusinessCategories: {
-            include: {
-              Categories: true,
-            },
-          },
+          BusinessCategories: { include: { Categories: true } },
+          Locations: true,
         },
       }),
-      prisma.business.count({
-        where: {
-          fullInformation: true,
-          // Filtro por nombre (si se proporciona)
-          ...(name && {
-            name: {
-              contains: name, // Busca nombres que contengan el string (case-insensitive)
-              mode: "insensitive",
-            },
-          }),
-
-          // Filtro por categoría (si se proporciona)
-          ...(category && {
-            BusinessCategories: {
-              some: {
-                // 'some' es para relaciones uno a muchos o muchos a muchos
-                idCategory: category, // Busca negocios que tengan AL MENOS UNA categoría con ese ID
-              },
-            },
-          }),
-        },
-      }),
+      prisma.business.count({ where: whereClause }),
     ]);
 
     return {
-      business: business.map((el) => {
-        return {
-          id: el.id,
-          name: el.name,
-          email: el.email,
-          idLocation: el.idLocation,
-          logoImage: el.logoImage,
-          address: el.address,
-          idPlan: el.idPlan,
-          fullInformation: el.fullInformation,
-          categories: el.BusinessCategories
-            ? el.BusinessCategories.map((el) => {
-                return {
-                  id: el.Categories.id,
-                  name: el.Categories.name,
-                };
-              })
-            : null,
-          // Mapea otras relaciones si las incluiste en la consulta
-        }; // Cast aquí para simplificar el ejemplo, idealmente un mapeador dedicado
-      }),
+      business: businesses.map(mapPrismaBusinessToDomain),
       total,
     };
   }
 }
+
