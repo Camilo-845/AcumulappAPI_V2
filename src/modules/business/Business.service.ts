@@ -1,3 +1,4 @@
+import { ApiError } from "@/core";
 import { environment } from "../../config/api";
 import {
   PaginatedResponse,
@@ -8,6 +9,7 @@ import { BusinessCategoriesRepository } from "../businessCategories/BusinessCate
 import { IBusiness } from "./Business.model";
 import { BusinessRepository } from "./Business.repository";
 import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
+import { StatusCodes } from "http-status-codes";
 
 export class BusinessService {
   private businessRepository: BusinessRepository;
@@ -66,5 +68,34 @@ export class BusinessService {
 
   public async getBusinessById(id: number): Promise<IBusiness | null> {
     return await this.businessRepository.findByIdWithRelations(id);
+  }
+
+  public async completeBusinessProfile(
+    id: number,
+    data: {
+      name?: string;
+      email?: string;
+      idLocation?: number;
+      logoImage?: string;
+      address?: string;
+    },
+  ): Promise<IBusiness | null> {
+    const business = await this.businessRepository.findById(id);
+    if (!business) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
+    }
+
+    return await this.businessRepository.update(id, data);
+  }
+
+  public async updateBusinessCategories(
+    id: number,
+    categoryIds: number[],
+  ): Promise<void> {
+    const business = await this.businessRepository.findById(id);
+    if (!business) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
+    }
+    await this.businessRepository.updateBusinessCategories(id, categoryIds);
   }
 }

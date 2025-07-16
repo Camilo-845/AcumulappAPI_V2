@@ -6,9 +6,13 @@ import {
   getAllBusiness,
   getAllBusinessCategories,
   getBusinessById,
+  completeBusinessProfile,
+  updateBusinessCategories,
 } from "./Business.controller";
 import z from "zod";
 import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
+import { updateBusinessSchema } from "./DTO/Request/updateBusiness.request.dto";
+import { updateBusinessCategoriesSchema } from "./DTO/Request/updateBusinessCategories.request.dto";
 
 const router = Router();
 
@@ -26,5 +30,19 @@ router.get(
 
 router.get("/categories", authenticateToken, getAllBusinessCategories);
 router.get("/:id", authenticateToken, getBusinessById);
+
+router.put(
+  "/:id",
+  authenticateToken,
+  validate(updateBusinessSchema),
+  completeBusinessProfile,
+);
+
+router.put(
+  "/:id/categories",
+  authenticateToken,
+  validate(updateBusinessCategoriesSchema),
+  updateBusinessCategories,
+);
 
 export default router;

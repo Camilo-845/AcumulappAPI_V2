@@ -38,3 +38,38 @@ export const getBusinessById = asyncHandler(
     return res.status(StatusCodes.OK).json(business);
   },
 );
+
+export const completeBusinessProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    const businessId = Number(req.validatedData!.params!.id);
+    const updateData = req.validatedData!.body as {
+      name?: string;
+      email?: string;
+      idLocation?: number;
+      logoImage?: string;
+      address?: string;
+    };
+
+    const updatedBusiness = await businessService.completeBusinessProfile(
+      businessId,
+      updateData,
+    );
+
+    return res.status(StatusCodes.OK).json(updatedBusiness);
+  },
+);
+
+export const updateBusinessCategories = asyncHandler(
+  async (req: Request, res: Response) => {
+    const businessId = Number(req.validatedData!.params!.id);
+    const { categories } = req.validatedData!.body as {
+      categories: number[];
+    };
+
+    await businessService.updateBusinessCategories(businessId, categories);
+
+    return res
+      .status(StatusCodes.OK)
+      .json({ message: "Categorías actualizadas exitosamente." });
+  },
+);
