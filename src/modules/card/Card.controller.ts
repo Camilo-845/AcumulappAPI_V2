@@ -4,6 +4,7 @@ import { CreateCardRequestDTO } from "./DTO/Request/createCard.request.dto";
 import { CardService } from "./Card.service";
 import { StatusCodes } from "http-status-codes";
 import { PaginationQueryParamsDTO } from "../../core/dtos/pagination.dto";
+import { getDetailsByIdDTO } from "./DTO/Request/card.request.dto";
 
 const cardService = new CardService();
 
@@ -26,7 +27,7 @@ export const getAllCards = asyncHandler(async (req: Request, res: Response) => {
 
 export const getAllCardsByBusinessId = asyncHandler(
   async (req: Request, res: Response) => {
-    const businessId = Number(req.params.id);
+    const businessId = req.validatedData!.params as getDetailsByIdDTO;
     const queryParams = req.validatedData!.query as PaginationQueryParamsDTO;
 
     const paginationParams: PaginationQueryParamsDTO = {
@@ -35,7 +36,7 @@ export const getAllCardsByBusinessId = asyncHandler(
     };
     const paginatedResponse = await cardService.getAllCardsByBusiness(
       paginationParams,
-      businessId,
+      businessId.id,
     );
     return res.status(StatusCodes.OK).json(paginatedResponse);
   },

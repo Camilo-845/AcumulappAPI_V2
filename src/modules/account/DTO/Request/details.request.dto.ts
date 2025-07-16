@@ -7,11 +7,3 @@ export const getDetailsById = z.object({
 });
 
 export type getDetailsByIdDTO = z.infer<typeof getDetailsById>["params"];
-
-export const getDetailsByEmail = z.object({
-  body: z.object({
-    email: z.string().email("Email inválido."),
-  }),
-});
-
-export type getDetailsByEmailDTO = z.infer<typeof getDetailsByEmail>["body"];

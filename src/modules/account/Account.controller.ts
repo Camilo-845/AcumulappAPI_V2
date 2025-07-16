@@ -4,12 +4,9 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
-import {
-  getDetailsByEmailDTO,
-  getDetailsByIdDTO,
-  LoginRequestDTO,
-} from "./DTO/Request";
+import { getDetailsByIdDTO, LoginRequestDTO } from "./DTO/Request";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
+import { getDetailsByEmailDTO } from "./DTO/Request/account.request.dto";
 
 const accountService = new AccountService();
 
@@ -37,8 +34,7 @@ export const businessRegister = asyncHandler(
 
 export const getAccountDetailsById = asyncHandler(
   async (req: Request, res: Response) => {
-    const accountId = Number(req.params.id);
-    const data: getDetailsByIdDTO = { id: accountId };
+    const data = req.validatedData!.params as getDetailsByIdDTO;
     const accountDetails = await accountService.getAccountById(data);
     return res.status(StatusCodes.OK).json(accountDetails);
   },
@@ -46,7 +42,7 @@ export const getAccountDetailsById = asyncHandler(
 
 export const getAccountDetailsByEmail = asyncHandler(
   async (req: Request, res: Response) => {
-    const data: getDetailsByEmailDTO = req.body;
+    const data = req.validatedData!.params as getDetailsByEmailDTO;
     const accountDetails = await accountService.getAccountByEmail(data);
     return res.status(StatusCodes.OK).json(accountDetails);
   },

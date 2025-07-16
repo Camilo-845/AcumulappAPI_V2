@@ -7,9 +7,9 @@ declare global {
   namespace Express {
     interface Request {
       validatedData?: {
-        body?: any; // Puedes tipar esto de forma más específica si lo deseas
-        query?: any; // Ej: query?: YourSpecificQueryDTO;
-        params?: any; // Ej: params?: YourSpecificParamsDTO;
+        body?: Record<string, any>; // Tipo genérico para objetos de cuerpo
+        query?: Record<string, any>; // Tipo genérico para objetos de consulta
+        params?: Record<string, any>; // Tipo genérico para objetos de parámetros
       };
     }
   }
@@ -24,7 +24,7 @@ const validate =
         query: req.query,
         params: req.params,
       });
-      req.validatedData = {};
+      req.validatedData = { ...req.validatedData };
       if (parsedData.body) {
         req.validatedData.body = parsedData.body;
       }

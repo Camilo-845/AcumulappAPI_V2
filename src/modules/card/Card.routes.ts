@@ -3,8 +3,13 @@ import { z } from "zod";
 import { paginationQueryParams } from "../../core/dtos/pagination.dto";
 import { authenticateToken } from "../../middelwares/auth.middleware";
 import validate from "../../middelwares/validation";
-import { createCard, getAllCards } from "./Card.controller";
+import {
+  createCard,
+  getAllCards,
+  getAllCardsByBusinessId,
+} from "./Card.controller";
 import { createCardRequestSchema } from "./DTO/Request/createCard.request.dto";
+import { getDetailsByIdSchema } from "./DTO/Request/card.request.dto";
 
 const router = Router();
 
@@ -16,8 +21,9 @@ router.get("/", authenticateToken, validate(cardListRouteSchema), getAllCards);
 router.get(
   "/business/:id",
   authenticateToken,
+  validate(getDetailsByIdSchema),
   validate(cardListRouteSchema),
-  getAllCards,
+  getAllCardsByBusinessId,
 );
 router.post(
   "/",

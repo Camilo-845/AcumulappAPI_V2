@@ -5,11 +5,7 @@ import { CollaboratorRepository } from "../collaborator/Collaborator.repository"
 import { AccountRepository } from "./Account.repository";
 import { BusinessRepository } from "../business/Business.repository";
 import { AuthProviderRepository } from "../authProvider/AuthProvider.repository";
-import {
-  getDetailsByEmailDTO,
-  getDetailsByIdDTO,
-  LoginRequestDTO,
-} from "./DTO/Request";
+import { getDetailsByIdDTO, LoginRequestDTO } from "./DTO/Request";
 import {
   AccountDetailsResponseDTO,
   AuthResponseDTO,
@@ -20,6 +16,7 @@ import { comparePassword, hashPassword } from "../../utils/password";
 import { signJwt } from "../../utils/jwt";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
 import { ICreateAccountData } from "./Account.model";
+import { getDetailsByEmailDTO } from "./DTO/Request/account.request.dto";
 
 export class AccountService {
   getDetailsById(accountId: number) {

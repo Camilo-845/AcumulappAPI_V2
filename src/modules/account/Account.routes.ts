@@ -1,10 +1,6 @@
 import { Router } from "express";
 import validate from "../../middelwares/validation";
-import {
-  getDetailsByEmail,
-  localRegisterRequestSchema,
-  loginRequestSchema,
-} from "./DTO/Request";
+import { localRegisterRequestSchema, loginRequestSchema } from "./DTO/Request";
 import {
   businessRegister,
   clientRegister,
@@ -13,6 +9,10 @@ import {
   login,
 } from "./Account.controller";
 import { authenticateToken } from "../../middelwares/auth.middleware";
+import {
+  getDetailsByEmailSchema,
+  getDetailsByIdSchema,
+} from "./DTO/Request/account.request.dto";
 
 const router = Router();
 
@@ -27,11 +27,16 @@ router.post(
   validate(localRegisterRequestSchema),
   businessRegister,
 );
-router.get("/:id", authenticateToken, getAccountDetailsById);
 router.get(
-  "/email",
+  "/email/:email",
   authenticateToken,
-  validate(getDetailsByEmail),
+  validate(getDetailsByEmailSchema),
   getAccountDetailsByEmail,
+);
+router.get(
+  "/:id",
+  authenticateToken,
+  validate(getDetailsByIdSchema),
+  getAccountDetailsById,
 );
 export default router;
