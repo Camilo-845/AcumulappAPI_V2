@@ -10,8 +10,7 @@ const businessService = new BusinessService();
 export const getAllBusiness = asyncHandler(
   async (req: Request, res: Response) => {
     const queryParams = req.validatedData!.query as PaginationQueryParamsDTO;
-    const filters: GetBusinessFiltersRequestDTO = req.body;
-
+    const filters = req.validatedData!.query as GetBusinessFiltersRequestDTO;
     const paginationParams: PaginationQueryParamsDTO = {
       page: queryParams.page,
       size: queryParams.size,

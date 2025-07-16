@@ -1,18 +1,18 @@
 import { z } from "zod";
 
 export const getClientCardByClientRequestSchema = z.object({
-  body: z.object({
-    idClient: z.number().gt(0, "Debe ser mayor a 0"),
-    idState: z.number().gt(0, "Debe ser mayor a 0").optional(),
+  query: z.object({
+    idClient: z.coerce.number().gt(0, "Debe ser mayor a 0"),
+    idState: z.coerce.number().gt(0, "Debe ser mayor a 0").optional(),
   }),
 });
 
 export type GetClientCardByClientRequestDTO = z.infer<
   typeof getClientCardByClientRequestSchema
->["body"];
+>["query"];
 
 export const getClientCardByBusinessRequestSchema = z.object({
-  body: z.object({
+  query: z.object({
     idBusiness: z.number().gt(0, "Debe ser mayor a 0"),
     idState: z.number().gt(0, "Debe ser mayor a 0").optional(),
   }),
@@ -20,7 +20,7 @@ export const getClientCardByBusinessRequestSchema = z.object({
 
 export type GetClientCardByBusinessRequestDTO = z.infer<
   typeof getClientCardByBusinessRequestSchema
->["body"];
+>["query"];
 
 export const addStampRequestSchema = z.object({
   body: z.object({

@@ -23,7 +23,7 @@ export const createClientCard = asyncHandler(
 
 export const getAllClientCardsByClient = asyncHandler(
   async (req: Request, res: Response) => {
-    const data: GetClientCardByClientRequestDTO = req.body;
+    const data = req.validatedData!.query as GetClientCardByClientRequestDTO;
     const queryParams = req.validatedData!.query as PaginationQueryParamsDTO;
     const paginationParams: PaginationQueryParamsDTO = {
       page: queryParams.page,
@@ -39,7 +39,7 @@ export const getAllClientCardsByClient = asyncHandler(
 );
 export const getAllClientCardsByBusiness = asyncHandler(
   async (req: Request, res: Response) => {
-    const data: GetClientCardByBusinessRequestDTO = req.body;
+    const data = req.validatedData!.query as GetClientCardByBusinessRequestDTO;
     const queryParams = req.validatedData!.query as PaginationQueryParamsDTO;
     const paginationParams: PaginationQueryParamsDTO = {
       page: queryParams.page,
