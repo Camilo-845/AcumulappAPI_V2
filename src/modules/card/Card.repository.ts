@@ -16,6 +16,8 @@ const mapPrismaCardToDomain = (primaCard: PrismaCardType): ICard => {
     expiration: Number(primaCard.expiration),
     maxStamp: primaCard.maxStamp,
     description: primaCard.description,
+    restrictions: primaCard.restrictions,
+    reward: primaCard.reward,
   };
 };
 

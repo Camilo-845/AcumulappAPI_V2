@@ -6,6 +6,8 @@ export interface ICard {
   expiration: number;
   maxStamp: number;
   description: string;
+  restrictions: string;
+  reward: string;
   business?: IBusiness;
 }
 
@@ -16,6 +18,8 @@ export interface ICreateCardData {
   expiration: number;
   maxStamp: number;
   description: string;
+  restrictions: string;
+  reward: string;
 }
 
 // Opcional: Interfaz para los datos de actualización (todas las propiedades opcionales)
@@ -24,4 +28,6 @@ export interface IUpdateCardData {
   expiration?: number;
   maxStamp?: number;
   description?: string;
+  restrictions: string;
+  reward: string;
 }

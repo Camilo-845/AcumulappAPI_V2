@@ -60,6 +60,8 @@ model Cards {
   expiration   BigInt
   maxStamp     Int
   description  String         @db.VarChar(2000)
+  restrictions String         @default("") @db.VarChar(500)
+  reward       String         @default("") @db.VarChar(500)
   Business     Business       @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
   CardsClients CardsClients[]
 }
@@ -203,8 +205,8 @@ model CardsClients {
   idCard         Int
   idCardState    Int
   expirationDate DateTime   @db.Timestamp(6)
-  UniqueCode     String?    @unique @db.Char(8)
   currentStamps  Int
+  UniqueCode     String?    @unique @db.Char(8)
   CardStates     CardStates @relation(fields: [idCardState], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Cards          Cards      @relation(fields: [idCard], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Clients        Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
