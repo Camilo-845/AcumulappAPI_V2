@@ -13,7 +13,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "build": "npm run prisma:generate && tsc",
-    "dev": "npx nodemon --exec npx ts-node src/server.ts",
+    "dev": "npx nodemon --exec npx ts-node -r tsconfig-paths/register src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prisma:generate": "npx prisma generate"
   },
@@ -38,6 +38,7 @@
     "@types/node": "^22.14.0",
     "dotenv": "^16.4.5",
     "nodemon": "^3.1.7",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3"
   }
 }
