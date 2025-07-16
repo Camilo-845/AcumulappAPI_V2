@@ -24,16 +24,14 @@ const validate =
         query: req.query,
         params: req.params,
       });
-      req.validatedData = { ...req.validatedData };
-      if (parsedData.body) {
-        req.validatedData.body = parsedData.body;
-      }
-      if (parsedData.query) {
-        req.validatedData.query = parsedData.query;
-      }
-      if (parsedData.params) {
-        req.validatedData.params = parsedData.params;
-      }
+
+      // Asegura que validatedData exista y fusiona los nuevos datos
+      req.validatedData = {
+        body: { ...req.validatedData?.body, ...parsedData.body },
+        query: { ...req.validatedData?.query, ...parsedData.query },
+        params: { ...req.validatedData?.params, ...parsedData.params },
+      };
+
       next(); // Si la validación es exitosa, pasa al siguiente middleware/controlador
     } catch (error) {
       if (error instanceof ZodError) {
