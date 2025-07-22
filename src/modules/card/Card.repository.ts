@@ -18,6 +18,7 @@ const mapPrismaCardToDomain = (primaCard: PrismaCardType): ICard => {
     description: primaCard.description,
     restrictions: primaCard.restrictions,
     reward: primaCard.reward,
+    name: primaCard.name,
   };
 };
 
@@ -34,6 +35,9 @@ export class CardRepository {
         expiration: data.expiration,
         maxStamp: data.maxStamp,
         description: data.description,
+        restrictions: data.restrictions,
+        reward: data.reward,
+        name: data.name,
       },
     });
     return mapPrismaCardToDomain(newCard);
@@ -47,6 +51,9 @@ export class CardRepository {
         expiration: data.expiration,
         maxStamp: data.maxStamp,
         description: data.description,
+        restrictions: data.restrictions,
+        reward: data.reward,
+        name: data.name,
       },
     });
     return mapPrismaCardToDomain(updatedCard);

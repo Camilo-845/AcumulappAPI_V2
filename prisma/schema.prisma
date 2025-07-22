@@ -62,6 +62,7 @@ model Cards {
   description  String         @db.VarChar(2000)
   restrictions String         @default("") @db.VarChar(500)
   reward       String         @default("") @db.VarChar(500)
+  name         String         @default("") @db.VarChar(100)
   Business     Business       @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
   CardsClients CardsClients[]
 }

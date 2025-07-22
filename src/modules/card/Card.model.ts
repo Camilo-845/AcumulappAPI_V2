@@ -2,6 +2,7 @@ import { IBusiness } from "../business/Business.model";
 
 export interface ICard {
   id: number;
+  name: string;
   idBusiness: number;
   expiration: number;
   maxStamp: number;
@@ -15,6 +16,7 @@ export interface ICard {
 // Aquí no se incluye 'id' porque lo genera la base de datos
 export interface ICreateCardData {
   idBusiness: number;
+  name: string;
   expiration: number;
   maxStamp: number;
   description: string;
@@ -25,6 +27,7 @@ export interface ICreateCardData {
 // Opcional: Interfaz para los datos de actualización (todas las propiedades opcionales)
 export interface IUpdateCardData {
   idBusiness?: number;
+  name: string;
   expiration?: number;
   maxStamp?: number;
   description?: string;

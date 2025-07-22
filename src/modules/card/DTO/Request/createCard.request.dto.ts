@@ -14,6 +14,7 @@ export const createCardRequestSchema = z.object({
       .max(2000, "Descripcon debe tener menos de 2000 caaracteres"),
     restrictions: z.string().min(1).max(500, "less than 500"),
     reward: z.string().min(1).max(500, "less than 500"),
+    name: z.string().min(1).max(100, "Less than 100"),
   }),
 });
 
