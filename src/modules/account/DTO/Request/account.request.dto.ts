@@ -19,6 +19,15 @@ export const getDetailsByIdSchema = z.object({
   }),
 });
 
+export const loginQuerySchema = z.object({
+  query: z.object({
+    userType: z.enum(["client", "business"]).optional().default("client"),
+  }),
+});
+
+export type LoginQueryDTO = z.infer<typeof loginQuerySchema>["query"];
+
 // Este tipo se inferirá directamente del esquema Zod,
 // o puedes definirlo explícitamente si lo prefieres para claridad.
 export type getDetailsByIdDTO = z.infer<typeof getDetailsByIdSchema>["params"];
+

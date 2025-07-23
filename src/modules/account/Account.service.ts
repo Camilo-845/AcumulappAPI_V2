@@ -36,8 +36,11 @@ export class AccountService {
     this.businessRepository = new BusinessRepository();
   }
 
-  public async login(loginData: LoginRequestDTO): Promise<AuthResponseDTO> {
-    const { email, password, userType } = loginData;
+  public async login(
+    loginData: LoginRequestDTO,
+    userType: "client" | "business",
+  ): Promise<AuthResponseDTO> {
+    const { email, password } = loginData;
 
     // 1. Encontrar la cuenta por email
     const account = await this.accountRepository.findByEmailWithPassword(email); // Necesitas un método que incluya el hash de password
@@ -52,7 +55,26 @@ export class AccountService {
     }
 
     // 3. Determinar el tipo de usuario y construir la respuesta
-    const isClient = await this.clientRepository.findByAccountId(account.id);
+    if (userType === "client") {
+      const isClient = await this.clientRepository.findByAccountId(account.id);
+      if (!isClient) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          `La cuenta no es un cliente.`,
+        );
+      }
+    } else {
+      const collaborators = await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
+        account.id,
+      );
+      if (!collaborators || collaborators.length === 0) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          `La cuenta no es un colaborador.`,
+        );
+      }
+    }
+
     const collaborators =
       await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
         account.id,
@@ -60,21 +82,8 @@ export class AccountService {
 
     // Lógica para deducir userType si no se envió explícitamente
     let determinedUserType: "client" | "collaborator" | "none" = "none";
-    if (isClient) determinedUserType = "client";
-    if (collaborators && collaborators.length > 0)
-      determinedUserType = "collaborator";
-
-    if (
-      userType &&
-      userType !== determinedUserType &&
-      determinedUserType !== "none"
-    ) {
-      // Si el userType solicitado no coincide con lo que encontramos
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        `La cuenta no es un ${userType}.`,
-      );
-    }
+    if (userType === "client") determinedUserType = "client";
+    if (userType === "business") determinedUserType = "collaborator";
 
     if (determinedUserType === "none") {
       throw new ApiError(
@@ -93,7 +102,7 @@ export class AccountService {
     const token = signJwt(jwtPayload);
 
     // 5. Construir la respuesta basada en el tipo de usuario
-    if (determinedUserType === "client" && isClient) {
+    if (determinedUserType === "client") {
       const response: ClientAuthResponseDTO = {
         token,
         account: {

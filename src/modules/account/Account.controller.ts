@@ -6,13 +6,14 @@ import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
 import { getDetailsByIdDTO, LoginRequestDTO } from "./DTO/Request";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
-import { getDetailsByEmailDTO } from "./DTO/Request/account.request.dto";
+import { getDetailsByEmailDTO, LoginQueryDTO } from "./DTO/Request/account.request.dto";
 
 const accountService = new AccountService();
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const loginData: LoginRequestDTO = req.body; // Los datos ya validados por el middleware de validación
-  const authResponse = await accountService.login(loginData);
+  const { userType } = req.validatedData!.query as LoginQueryDTO;
+  const authResponse = await accountService.login(loginData, userType);
   return res.status(StatusCodes.OK).json(authResponse);
 });
 

@@ -12,11 +12,17 @@ import { authenticateToken } from "../../middelwares/auth.middleware";
 import {
   getDetailsByEmailSchema,
   getDetailsByIdSchema,
+  loginQuerySchema,
 } from "./DTO/Request/account.request.dto";
 
 const router = Router();
 
-router.post("/login", validate(loginRequestSchema), login);
+router.post(
+  "/login",
+  validate(loginRequestSchema),
+  validate(loginQuerySchema),
+  login,
+);
 router.post(
   "/register/client",
   validate(localRegisterRequestSchema),
