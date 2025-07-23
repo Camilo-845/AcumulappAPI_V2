@@ -7,14 +7,18 @@ import { buildPaginatedResponse } from "../../utils/pagination";
 import { ICard } from "./Card.model";
 import { CardRepository } from "./Card.repository";
 import { CreateCardRequestDTO } from "./DTO/Request/createCard.request.dto";
+import { CardStateRepository } from "../cardState/CardState.repository";
+import { ICardState } from "../cardState/CardState.model";
 
 const baseUrl = `${environment.baseUrl}/api/v1/card`;
 
 export class CardService {
   private cardRepository: CardRepository;
+  private cardStateRepository: CardStateRepository;
 
   constructor() {
     this.cardRepository = new CardRepository();
+    this.cardStateRepository = new CardStateRepository();
   }
 
   public async create(cardData: CreateCardRequestDTO): Promise<ICard> {
@@ -55,5 +59,9 @@ export class CardService {
     );
 
     return buildPaginatedResponse(cards, total, paginationParams, baseUrl);
+  }
+
+  public async getAllCardStates(): Promise<ICardState[]> {
+    return await this.cardStateRepository.findAll();
   }
 }

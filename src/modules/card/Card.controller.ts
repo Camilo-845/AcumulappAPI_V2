@@ -41,3 +41,10 @@ export const getAllCardsByBusinessId = asyncHandler(
     return res.status(StatusCodes.OK).json(paginatedResponse);
   },
 );
+
+export const getAllCardStates = asyncHandler(
+  async (req: Request, res: Response) => {
+    const cardStates = await cardService.getAllCardStates();
+    return res.status(StatusCodes.OK).json(cardStates);
+  },
+);

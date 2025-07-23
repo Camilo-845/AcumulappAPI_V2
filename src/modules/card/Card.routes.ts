@@ -7,6 +7,7 @@ import {
   createCard,
   getAllCards,
   getAllCardsByBusinessId,
+  getAllCardStates,
 } from "./Card.controller";
 import { createCardRequestSchema } from "./DTO/Request/createCard.request.dto";
 import { getDetailsByIdSchema } from "./DTO/Request/card.request.dto";
@@ -18,6 +19,7 @@ const cardListRouteSchema = z.object({
 });
 
 router.get("/", authenticateToken, validate(cardListRouteSchema), getAllCards);
+router.get("/states", authenticateToken, getAllCardStates);
 router.get(
   "/business/:id",
   authenticateToken,
