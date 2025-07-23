@@ -1,3 +1,6 @@
+import { ICard } from "../card/Card.model";
+import { ICardState } from "../cardState/CardState.model";
+
 // Define la interfaz para el modelo de dominio de una Tarjeta de Cliente
 export interface IClientCard {
   id: number;
@@ -7,6 +10,9 @@ export interface IClientCard {
   expirationDate: Date; // TIMESTAMP en SQL, mapea a Date en JS
   currentStamps: number;
   uniqueCode: string | null; // CHAR(8) en SQL, mapea a string o null
+
+  card?: ICard | null;
+  cardState?: ICardState | null;
 }
 
 // Define la interfaz para los datos necesarios para crear una nueva Tarjeta de Cliente

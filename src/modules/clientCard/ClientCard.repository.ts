@@ -1,12 +1,16 @@
-import Prisma from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import {
   IClientCard,
   ICreateClientCardData,
   IUpdateClientCardData,
 } from "./ClientCard.model";
 import prisma from "../../config/db/prismaClient";
+import { ICard } from "../card/Card.model";
+import { ICardState } from "../cardState/CardState.model";
 
-type PrismaClientCards = Prisma.CardsClients;
+type PrismaClientCardWithDetails = Prisma.CardsClientsGetPayload<{
+  include: { Cards: true; CardStates: true };
+}>;
 
 interface clientCardPaginationParams {
   limit: number;
@@ -14,28 +18,56 @@ interface clientCardPaginationParams {
 }
 
 const mapPrismaClientCardToDomain = (
-  priscamClientCard: PrismaClientCards,
+  pricamClientCard: PrismaClientCardWithDetails,
 ): IClientCard => {
+  const { Cards, CardStates, ...rest } = pricamClientCard;
+
+  const card: ICard | null = Cards
+    ? {
+        id: Cards.id,
+        name: Cards.name,
+        idBusiness: Cards.idBusiness,
+        expiration: Number(Cards.expiration),
+        maxStamp: Cards.maxStamp,
+        description: Cards.description,
+        restrictions: Cards.restrictions,
+        reward: Cards.reward,
+      }
+    : null;
+
+  const cardState: ICardState | null = CardStates
+    ? {
+        id: CardStates.id,
+        name: CardStates.name,
+      }
+    : null;
+
   return {
-    id: priscamClientCard.id,
-    idClient: priscamClientCard.idClient,
-    idCard: priscamClientCard.idCard,
-    idCardState: priscamClientCard.idCardState,
-    expirationDate: priscamClientCard.expirationDate,
-    currentStamps: priscamClientCard.currentStamps,
-    uniqueCode: priscamClientCard.UniqueCode,
+    id: rest.id,
+    idClient: rest.idClient,
+    idCard: rest.idCard,
+    idCardState: rest.idCardState,
+    expirationDate: rest.expirationDate,
+    currentStamps: rest.currentStamps,
+    uniqueCode: rest.UniqueCode,
+    card: card,
+    cardState: cardState,
   };
 };
 
 export class ClientCardRepository {
   async findById(id: number): Promise<IClientCard | null> {
-    const clientCards = await prisma.cardsClients.findUnique({ where: { id } });
+    const clientCards = await prisma.cardsClients.findUnique({
+      where: { id },
+      include: { Cards: true, CardStates: true },
+    });
     return clientCards ? mapPrismaClientCardToDomain(clientCards) : null;
   }
 
   async findByUniqueCode(uniqueCode: string) {
     const clientCards = await prisma.cardsClients.findUnique({
       where: { UniqueCode: uniqueCode },
+      include: { Cards: true, CardStates: true },
     });
     return clientCards ? mapPrismaClientCardToDomain(clientCards) : null;
   }
@@ -52,6 +84,7 @@ export class ClientCardRepository {
         skip: offset,
         take: limit,
         where: { idClient: clientId, idCardState: stateId },
+        include: { Cards: true, CardStates: true },
       }),
       prisma.cardsClients.count({
         where: { idClient: clientId, idCardState: stateId },
@@ -72,6 +105,7 @@ export class ClientCardRepository {
         skip: offset,
         take: limit,
         where: { Cards: { idBusiness: businessId }, idCardState: stateId },
+        include: { Cards: true, CardStates: true },
       }),
       prisma.cardsClients.count({
         where: { Cards: { idBusiness: businessId }, idCardState: stateId },
@@ -90,6 +124,7 @@ export class ClientCardRepository {
         UniqueCode: data.uniqueCode,
         currentStamps: data.currentStamps,
       },
+      include: { Cards: true, CardStates: true },
     });
 
     return mapPrismaClientCardToDomain(newClientCard);
@@ -106,6 +141,7 @@ export class ClientCardRepository {
         UniqueCode: data.uniqueCode,
         currentStamps: data.currentStamps,
       },
+      include: { Cards: true, CardStates: true },
     });
     return mapPrismaClientCardToDomain(updatedClientCard);
   }
