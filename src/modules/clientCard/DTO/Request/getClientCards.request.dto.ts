@@ -13,8 +13,8 @@ export type GetClientCardByClientRequestDTO = z.infer<
 
 export const getClientCardByBusinessRequestSchema = z.object({
   query: z.object({
-    idBusiness: z.number().gt(0, "Debe ser mayor a 0"),
-    idState: z.number().gt(0, "Debe ser mayor a 0").optional(),
+    idBusiness: z.coerce.number().gt(0, "Debe ser mayor a 0"),
+    idState: z.coerce.number().gt(0, "Debe ser mayor a 0").optional(),
   }),
 });
 
