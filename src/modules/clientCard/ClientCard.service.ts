@@ -127,12 +127,12 @@ export class ClientCardService {
     if (!clientCard) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
-        "Targeta de cliente no encontrada",
+        "Tarjeta de cliente no encontrada",
       );
     }
-    const card = await this.cardRepository.findById(clientCard.id);
+    const card = await this.cardRepository.findById(clientCard.idCard);
     if (!card) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Targeta no encontrada");
+      throw new ApiError(StatusCodes.NOT_FOUND, "Tarjeta no encontrada");
     }
 
     const durationInMinutes = card.expiration; // This is the duration in minutes from the Card model
@@ -156,12 +156,12 @@ export class ClientCardService {
     if (!clientCard) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
-        "Targeta de cliente no encontrada",
+        "Tarjeta de cliente no encontrada",
       );
     }
     const card = await this.cardRepository.findById(clientCard.id);
     if (!card) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Targeta no encontrada");
+      throw new ApiError(StatusCodes.NOT_FOUND, "Tarjeta no encontrada");
     }
     if (card.maxStamp < clientCard.currentStamps + stamps) {
       throw new ApiError(
@@ -190,7 +190,7 @@ export class ClientCardService {
     if (!clientCard) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
-        "Targeta de cliente no encontrada",
+        "Tarjeta de cliente no encontrada",
       );
     }
     const updatedClientCard = await this.clientCardRepository.update(
