@@ -2,15 +2,12 @@ import { Request, Response } from "express";
 import { ApiError, asyncHandler } from "../core";
 import { StatusCodes } from "http-status-codes";
 import { verifyJwt } from "../utils";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: number;
-        email: string;
-      };
+      user?: JwtPayload;
     }
   }
 }
@@ -30,7 +27,12 @@ export const authenticateToken = asyncHandler(
 
     try {
       const decoded = verifyJwt(token);
-      req.user = { id: decoded.id, email: decoded.email };
+      req.user = {
+        id: decoded.id,
+        email: decoded.email,
+        userType: decoded.userType,
+        collaboratorDetails: decoded.collaboratorDetails,
+      };
       next();
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {

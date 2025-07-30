@@ -64,9 +64,10 @@ export class AccountService {
         );
       }
     } else {
-      const collaborators = await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
-        account.id,
-      );
+      const collaborators =
+        await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
+          account.id,
+        );
       if (!collaborators || collaborators.length === 0) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
@@ -90,6 +91,7 @@ export class AccountService {
         StatusCodes.FORBIDDEN,
         "La cuenta no está asociada a ningún tipo de usuario (cliente/colaborador).",
       );
+      userType;
     }
 
     // 4. Generar el payload del JWT
@@ -97,6 +99,10 @@ export class AccountService {
       id: account.id,
       email: account.email,
       userType: determinedUserType,
+      collaboratorDetails: collaborators.map((c) => ({
+        businessId: c.idBusiness,
+        role: c.Roles.name,
+      })),
     };
 
     const token = signJwt(jwtPayload);

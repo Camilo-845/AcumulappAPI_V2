@@ -5,7 +5,7 @@ import { JwtPayload } from "../types";
 const JWT_SECRET = environment.jwtSecret;
 const JWT_EXPIRES_IN = Number(environment.jwtExpiresIn) || 3600;
 
-export const signJwt = (payload: object): string => {
+export const signJwt = (payload: JwtPayload): string => {
   if (!JWT_SECRET) {
     throw new Error("JWT_SECRET no está definido en la configuración.");
   }
