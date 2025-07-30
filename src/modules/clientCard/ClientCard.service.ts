@@ -159,7 +159,7 @@ export class ClientCardService {
         "Tarjeta de cliente no encontrada",
       );
     }
-    const card = await this.cardRepository.findById(clientCard.id);
+    const card = await this.cardRepository.findById(clientCard.idCard);
     if (!card) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Tarjeta no encontrada");
     }
