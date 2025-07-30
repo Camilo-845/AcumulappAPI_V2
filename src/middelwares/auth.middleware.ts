@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { ApiError, asyncHandler } from "../core";
+import { Request, Response, NextFunction } from "express";
+import { ApiError } from "../core";
 import { StatusCodes } from "http-status-codes";
 import { verifyJwt } from "../utils";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -12,18 +12,14 @@ declare global {
   }
 }
 
-export const authenticateToken = asyncHandler(
-  async (req: Request, _res: Response, next) => {
+export const authenticateToken = (req: Request, _res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new ApiError(
-        StatusCodes.UNAUTHORIZED,
-        "Token no proporcionado o formato incorrecto.",
-      );
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, "Token no proporcionado."));
     }
 
-    const token = authHeader.split(" ")[1]; // Extrae el token de "Bearer <token>"
+    const token = authHeader.split(" ")[1];
 
     try {
       const decoded = verifyJwt(token);
@@ -36,9 +32,8 @@ export const authenticateToken = asyncHandler(
       next();
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, "Token expirado.");
+        return next(new ApiError(StatusCodes.UNAUTHORIZED, "Token expirado."));
       }
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Token inválido.");
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, "Token inválido."));
     }
-  },
-);
+  };

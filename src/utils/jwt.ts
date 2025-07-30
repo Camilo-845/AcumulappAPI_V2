@@ -20,10 +20,10 @@ export const verifyJwt = (token: string): JwtPayload => {
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      throw new Error("Token de autenticación expirado.");
+      throw error;
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      throw new Error("Token de autenticación inválido.");
+      throw error;
     }
     throw new Error("Error al verificar el token.");
   }
