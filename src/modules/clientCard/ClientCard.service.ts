@@ -25,6 +25,16 @@ export class ClientCardService {
   }
 
   public async createClientCard(data: CreateClientCardRequestDTO) {
+    const existingInactiveCard = await this.clientCardRepository.findByClientAndCardAndState(
+      data.idClient,
+      data.idCard,
+      4, // Estado inactivo
+    );
+
+    if (existingInactiveCard) {
+      return existingInactiveCard;
+    }
+
     const CODE_LENGTH = 8;
     let uniqueCode: string = ""; // Initialize uniqueCode here to satisfy TypeScript
     let isUnique = false;

@@ -72,6 +72,22 @@ export class ClientCardRepository {
     return clientCards ? mapPrismaClientCardToDomain(clientCards) : null;
   }
 
+  async findByClientAndCardAndState(
+    idClient: number,
+    idCard: number,
+    idCardState: number,
+  ) {
+    const clientCard = await prisma.cardsClients.findFirst({
+      where: {
+        idClient,
+        idCard,
+        idCardState,
+      },
+      include: { Cards: true, CardStates: true },
+    });
+    return clientCard ? mapPrismaClientCardToDomain(clientCard) : null;
+  }
+
   async findAllByClientAndState(
     paginationParams: clientCardPaginationParams,
     clientId: number,
