@@ -153,4 +153,23 @@ export class ClientCardRepository {
     });
     return count > 0;
   }
+
+  async getStatsByBusiness(businessId: number) {
+    const stats = await prisma.cardsClients.findMany({
+      where: {
+        Cards: {
+          idBusiness: businessId,
+        },
+      },
+      select: {
+        currentStamps: true,
+        CardStates: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    return stats;
+  }
 }

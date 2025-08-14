@@ -10,6 +10,7 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     });
     return;
   }
+  console.error(err);
 
   // Para cualquier otro tipo de error, devuelve un 500
   res.status(500).json({

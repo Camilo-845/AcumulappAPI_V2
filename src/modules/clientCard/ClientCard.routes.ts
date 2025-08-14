@@ -12,6 +12,7 @@ import {
   findByUniqueCode,
   getAllClientCardsByBusiness,
   getAllClientCardsByClient,
+  getBusinessStats,
   markClientCardAsRedeemed,
 } from "./ClientCard.controller";
 import {
@@ -19,6 +20,7 @@ import {
   getClientCardByBusinessRequestSchema,
   getClientCardByClientRequestSchema,
 } from "./DTO/Request/getClientCards.request.dto";
+import { getBusinessStatsRequestDto } from "./DTO/Request/clientCard.request.dto";
 
 const router = Router();
 
@@ -45,6 +47,12 @@ router.get(
   validate(getClientCardByBusinessRequestSchema),
   validate(clientCardListRouteSchema),
   getAllClientCardsByBusiness,
+);
+router.get(
+  "/stats",
+  authenticateToken,
+  validate(getBusinessStatsRequestDto),
+  getBusinessStats,
 );
 router.get("/:id", authenticateToken, findById);
 router.get("/unique-code/:uniqueCode", authenticateToken, findByUniqueCode);

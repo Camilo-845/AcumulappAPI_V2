@@ -97,3 +97,11 @@ export const markClientCardAsRedeemed = asyncHandler(
     return res.status(StatusCodes.OK).json(updatedClientCard);
   },
 );
+
+export const getBusinessStats = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { businessId } = req.validatedData!.query as { businessId: string };
+    const stats = await clientCardService.getBusinessStats(Number(businessId));
+    return res.status(StatusCodes.OK).json(stats);
+  },
+);

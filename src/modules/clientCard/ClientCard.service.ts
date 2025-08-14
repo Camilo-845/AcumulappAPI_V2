@@ -203,4 +203,42 @@ export class ClientCardService {
 
     return updatedClientCard;
   }
+
+  public async getBusinessStats(businessId: number) {
+    const clientCards = await this.clientCardRepository.getStatsByBusiness(
+      businessId,
+    );
+
+    if (clientCards.length === 0) {
+      return {
+        totalCards: 0,
+        totalStamps: 0,
+        cardStates: [],
+      };
+    }
+
+    const totalCards = clientCards.length;
+    const totalStamps = clientCards.reduce(
+      (sum, card) => sum + card.currentStamps,
+      0,
+    );
+
+    const cardStates = clientCards.reduce(
+      (acc, card) => {
+        const stateName = card.CardStates.name;
+        if (!acc[stateName]) {
+          acc[stateName] = { state: stateName, total: 0 };
+        }
+        acc[stateName].total++;
+        return acc;
+      },
+      {} as Record<string, { state: string; total: number }>,
+    );
+
+    return {
+      totalCards,
+      totalStamps,
+      cardStates: Object.values(cardStates),
+    };
+  }
 }
