@@ -193,6 +193,12 @@ export class ClientCardService {
         "Tarjeta de cliente no encontrada",
       );
     }
+    if (clientCard.idCardState != 2) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Tarjeta de cliente no esta en estado completada",
+      );
+    }
     const updatedClientCard = await this.clientCardRepository.update(
       clientCard.id,
       {
@@ -205,9 +211,8 @@ export class ClientCardService {
   }
 
   public async getBusinessStats(businessId: number) {
-    const clientCards = await this.clientCardRepository.getStatsByBusiness(
-      businessId,
-    );
+    const clientCards =
+      await this.clientCardRepository.getStatsByBusiness(businessId);
 
     if (clientCards.length === 0) {
       return {
