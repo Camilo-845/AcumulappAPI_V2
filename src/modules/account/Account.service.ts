@@ -13,9 +13,9 @@ import {
   CollaboratorAuthResponseDTO,
 } from "./DTO/Response";
 import { comparePassword, hashPassword } from "../../utils/password";
-import { signJwt } from "../../utils/jwt";
+import { signJwt, JWT_REFRESH_EXPIRES_IN, verifyJwt } from "../../utils/jwt";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
-import { ICreateAccountData } from "./Account.model";
+import { ICreateAccountData, IAccount } from "./Account.model";
 import { getDetailsByEmailDTO } from "./DTO/Request/account.request.dto";
 
 export class AccountService {
@@ -42,19 +42,16 @@ export class AccountService {
   ): Promise<AuthResponseDTO> {
     const { email, password } = loginData;
 
-    // 1. Encontrar la cuenta por email
-    const account = await this.accountRepository.findByEmailWithPassword(email); // Necesitas un método que incluya el hash de password
+    const account = await this.accountRepository.findByEmailWithPassword(email);
     if (!account || !account.password) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Credenciales inválidas.");
     }
 
-    // 2. Comparar la contraseña
     const isPasswordValid = await comparePassword(password, account.password);
     if (!isPasswordValid) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Credenciales inválidas.");
     }
 
-    // 3. Determinar el tipo de usuario y construir la respuesta
     if (userType === "client") {
       const isClient = await this.clientRepository.findByAccountId(account.id);
       if (!isClient) {
@@ -81,7 +78,6 @@ export class AccountService {
         account.id,
       );
 
-    // Lógica para deducir userType si no se envió explícitamente
     let determinedUserType: "client" | "collaborator" | "none" = "none";
     if (userType === "client") determinedUserType = "client";
     if (userType === "business") determinedUserType = "collaborator";
@@ -91,10 +87,8 @@ export class AccountService {
         StatusCodes.FORBIDDEN,
         "La cuenta no está asociada a ningún tipo de usuario (cliente/colaborador).",
       );
-      userType;
     }
 
-    // 4. Generar el payload del JWT
     const jwtPayload = {
       id: account.id,
       email: account.email,
@@ -106,11 +100,15 @@ export class AccountService {
     };
 
     const token = signJwt(jwtPayload);
+    const refreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
 
-    // 5. Construir la respuesta basada en el tipo de usuario
+    const hashedRefreshToken = await hashPassword(refreshToken);
+    await this.accountRepository.update(account.id, { refreshToken: hashedRefreshToken });
+
     if (determinedUserType === "client") {
       const response: ClientAuthResponseDTO = {
         token,
+        refreshToken,
         account: {
           id: account.id,
           email: account.email,
@@ -126,6 +124,7 @@ export class AccountService {
     ) {
       const response: CollaboratorAuthResponseDTO = {
         token,
+        refreshToken,
         account: {
           id: account.id,
           email: account.email,
@@ -133,15 +132,14 @@ export class AccountService {
           userType: "collaborator",
           collaboratorDetails: collaborators.map((c) => ({
             businessId: c.idBusiness,
-            businessName: c.Business.name || "N/A", // Asegúrate de cargar el nombre del negocio
-            role: c.Roles.name, // Asegúrate de cargar el nombre del rol
+            businessName: c.Business.name || "N/A",
+            role: c.Roles.name,
           })),
         },
       };
       return response;
     }
 
-    // En caso de que algo falle o no se encuentre el tipo
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       "No se pudo determinar el tipo de usuario para la sesión.",
@@ -178,19 +176,23 @@ export class AccountService {
 
     const newAccount = await this.accountRepository.create(accountData);
 
-    //Crear el cliente asociado a la cuenta
     await this.clientRepository.create({ idAccount: newAccount.id });
 
     const jwtPayload = {
       id: newAccount.id,
       email: newAccount.email,
-      userType: "client",
+      userType: "client" as const,
     };
 
     const token = signJwt(jwtPayload);
+    const refreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
+
+    const hashedRefreshToken = await hashPassword(refreshToken);
+    await this.accountRepository.update(newAccount.id, { refreshToken: hashedRefreshToken });
 
     const response: ClientAuthResponseDTO = {
       token,
+      refreshToken,
       account: {
         id: newAccount.id,
         email: newAccount.email,
@@ -230,26 +232,35 @@ export class AccountService {
 
     const newAccount = await this.accountRepository.create(accountData);
 
-    //Crear el negocio asociad
     const newBusiness = await this.businessRepository.create({});
 
-    // Crear colaborador owner del negocio
     await this.collaboratorRepository.create({
       idAccount: newAccount.id,
       idBusiness: newBusiness.id,
-      idRol: 1, // Asumiendo que el rol 1 es el de "owner"
+      idRol: 1,
     });
 
     const jwtPayload = {
       id: newAccount.id,
       email: newAccount.email,
-      userType: "collaborator",
+      userType: "collaborator" as const,
+      collaboratorDetails: [
+        {
+          businessId: newBusiness.id,
+          role: "owner",
+        },
+      ],
     };
 
     const token = signJwt(jwtPayload);
+    const refreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
+
+    const hashedRefreshToken = await hashPassword(refreshToken);
+    await this.accountRepository.update(newAccount.id, { refreshToken: hashedRefreshToken });
 
     const response: CollaboratorAuthResponseDTO = {
       token,
+      refreshToken,
       account: {
         id: newAccount.id,
         email: newAccount.email,
@@ -298,5 +309,39 @@ export class AccountService {
       emailVerified: account.emailVerified,
       profileImageURL: account.profileImageURL || null,
     };
+  }
+
+  public async refreshToken(token: string): Promise<{ token: string }> {
+    const payload = verifyJwt(token);
+
+    const account = await this.accountRepository.findById(payload.id);
+    if (!account || !account.refreshToken) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token.");
+    }
+
+    const isRefreshTokenValid = await comparePassword(token, account.refreshToken);
+    if (!isRefreshTokenValid) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token.");
+    }
+
+    const collaborators =
+      await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
+        account.id,
+      );
+    const userType = collaborators.length > 0 ? "collaborator" : "client";
+
+    const jwtPayload = {
+      id: account.id,
+      email: account.email,
+      userType: userType,
+      collaboratorDetails: collaborators.map((c) => ({
+        businessId: c.idBusiness,
+        role: c.Roles.name,
+      })),
+    };
+
+    const newAccessToken = signJwt(jwtPayload);
+
+    return { token: newAccessToken };
   }
 }

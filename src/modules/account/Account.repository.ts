@@ -14,6 +14,7 @@ const mapPrismaAccountToDomain = (prismaAccount: PrismaAccount): IAccount => {
     profileImageURL: prismaAccount.profileImageURL,
     idAuthProvider: prismaAccount.idAuthProvider,
     providerUserId: prismaAccount.providerUserId,
+    refreshToken: prismaAccount.refreshToken,
   };
 };
 
@@ -59,9 +60,7 @@ export class AccountRepository {
   ): Promise<IAccount> {
     const updatedAccount = await prisma.accounts.update({
       where: { id },
-      data: {
-        fullName: data.fullName,
-      },
+      data,
     });
     return mapPrismaAccountToDomain(updatedAccount);
   }

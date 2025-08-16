@@ -1,5 +1,6 @@
 export interface ClientAuthResponseDTO {
   token: string;
+  refreshToken: string;
   account: {
     id: number;
     email: string;
@@ -10,6 +11,7 @@ export interface ClientAuthResponseDTO {
 
 export interface CollaboratorAuthResponseDTO {
   token: string;
+  refreshToken: string;
   account: {
     id: number;
     email: string;

@@ -3,13 +3,18 @@ import { environment } from "../config/api/environment"; // Correct import path 
 import { JwtPayload } from "../types";
 
 const JWT_SECRET = environment.jwtSecret;
-const JWT_EXPIRES_IN = Number(environment.jwtExpiresIn) || 3600;
+export const JWT_EXPIRES_IN = Number(environment.jwtExpiresIn) || 3600;
+export const JWT_REFRESH_EXPIRES_IN =
+  Number(environment.jwtRefreshExpiresIn) || 2592000;
 
-export const signJwt = (payload: JwtPayload): string => {
+export const signJwt = (
+  payload: JwtPayload,
+  expiresIn: number = JWT_EXPIRES_IN,
+): string => {
   if (!JWT_SECRET) {
     throw new Error("JWT_SECRET no está definido en la configuración.");
   }
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 };
 
 export const verifyJwt = (token: string): JwtPayload => {

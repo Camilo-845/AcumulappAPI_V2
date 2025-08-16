@@ -48,3 +48,9 @@ export const getAccountDetailsByEmail = asyncHandler(
     return res.status(StatusCodes.OK).json(accountDetails);
   },
 );
+
+export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  const newTokens = await accountService.refreshToken(refreshToken);
+  res.status(StatusCodes.OK).json(newTokens);
+});

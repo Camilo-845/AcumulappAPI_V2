@@ -7,6 +7,7 @@ export interface IAccount {
   profileImageURL?: string | null;
   idAuthProvider: number;
   providerUserId?: string | null;
+  refreshToken?: string | null;
 }
 
 /**
@@ -19,6 +20,7 @@ export interface ICreateAccountData {
   fullName: string;
   idAuthProvider: number;
   providerUserId?: string | null;
+  refreshToken?: string | null;
 }
 
 /**

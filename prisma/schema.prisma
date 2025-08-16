@@ -56,13 +56,13 @@ model CardStates {
 
 model Cards {
   id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(100)
   idBusiness   Int
   expiration   BigInt
   maxStamp     Int
   description  String         @db.VarChar(2000)
-  restrictions String         @default("") @db.VarChar(500)
-  reward       String         @default("") @db.VarChar(500)
-  name         String         @default("") @db.VarChar(100)
+  restrictions String         @db.VarChar(500)
+  reward       String         @db.VarChar(500)
   Business     Business       @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
   CardsClients CardsClients[]
 }
@@ -177,6 +177,7 @@ model Accounts {
   providerUserId          String?                   @db.VarChar(255)
   emailVerified           Boolean                   @default(false)
   profileImageURL         String?                   @db.VarChar(500)
+  refreshToken            String?                   @db.VarChar(500)
   AuthProviders           AuthProviders             @relation(fields: [idAuthProvider], references: [id], onDelete: NoAction, onUpdate: NoAction)
   AccountsNotifications   AccountsNotifications[]
   Clients                 Clients?

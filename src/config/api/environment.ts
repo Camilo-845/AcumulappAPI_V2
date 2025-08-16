@@ -8,6 +8,8 @@ export const environment = {
   jwtSecret: process.env.JWT_SECRET || "Top_Secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "604800",
 
+  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "2592000",
+
   baseUrl: process.env.BASE_URL || "http://localhost:3123",
 
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
