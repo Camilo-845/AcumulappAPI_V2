@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { uploadFile } from "../../utils/aws";
-import { asyncHandler } from "@/core";
+import { asyncHandler } from "../../core";
 
 export const uploadImage = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
