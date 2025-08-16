@@ -10,6 +10,13 @@ export const environment = {
 
   baseUrl: process.env.BASE_URL || "http://localhost:3123",
 
+  awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+  awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+
+  awsRegion: process.env.AWS_REGION || "us-east-1",
+
+  awsBucketName: process.env.AWS_BUCKET_NAME || "",
+
   // db: {
   //     host: process.env.DB_HOST,
   //     port: parseInt(process.env.DB_PORT || '5432', 10),

@@ -4,6 +4,7 @@ import accountRoutes from "../../../modules/account/Account.routes";
 import businessRoutes from "../../../modules/business/Business.routes";
 import cardRoutes from "../../../modules/card/Card.routes";
 import clientCardRoutes from "../../../modules/clientCard/ClientCard.routes";
+import imageRoutes from "../../../modules/image/Image.routes";
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use("/auth", accountRoutes);
 router.use("/business", businessRoutes);
 router.use("/card", cardRoutes);
 router.use("/client-card", clientCardRoutes);
+router.use("/image", imageRoutes);
 
 export default router;
