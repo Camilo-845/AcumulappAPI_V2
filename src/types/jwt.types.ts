@@ -6,4 +6,5 @@ export interface JwtPayload {
     businessId: number;
     role: string;
   }[];
+  exp?: number;
 }

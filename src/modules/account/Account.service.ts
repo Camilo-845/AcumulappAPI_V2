@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { ApiError } from "../../core";
 import { ClientRepository } from "../client/Client.repository";
 import { CollaboratorRepository } from "../collaborator/Collaborator.repository";
@@ -311,37 +312,72 @@ export class AccountService {
     };
   }
 
-  public async refreshToken(token: string): Promise<{ token: string }> {
-    const payload = verifyJwt(token);
+  public async refreshToken(
+    token: string,
+  ): Promise<{ token: string; refreshToken: string }> {
+    try {
+      const payload = verifyJwt(token);
 
-    const account = await this.accountRepository.findById(payload.id);
-    if (!account || !account.refreshToken) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token.");
-    }
+      const account = await this.accountRepository.findById(payload.id);
+      if (!account || !account.refreshToken) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token.");
+      }
 
-    const isRefreshTokenValid = await comparePassword(token, account.refreshToken);
-    if (!isRefreshTokenValid) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token.");
-    }
-
-    const collaborators =
-      await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
-        account.id,
+      const isRefreshTokenValid = await comparePassword(
+        token,
+        account.refreshToken,
       );
-    const userType = collaborators.length > 0 ? "collaborator" : "client";
+      if (!isRefreshTokenValid) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token.");
+      }
 
-    const jwtPayload = {
-      id: account.id,
-      email: account.email,
-      userType: userType,
-      collaboratorDetails: collaborators.map((c) => ({
-        businessId: c.idBusiness,
-        role: c.Roles.name,
-      })),
-    };
+      const collaborators =
+        await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
+          account.id,
+        );
+      const userType = collaborators.length > 0 ? "collaborator" : "client";
 
-    const newAccessToken = signJwt(jwtPayload);
+      const jwtPayload = {
+        id: account.id,
+        email: account.email,
+        userType: userType,
+        collaboratorDetails: collaborators.map((c) => ({
+          businessId: c.idBusiness,
+          role: c.Roles.name,
+        })),
+      };
 
-    return { token: newAccessToken };
+      const newAccessToken = signJwt(jwtPayload);
+      let newRefreshToken = token;
+
+      if (typeof payload.exp === "undefined") {
+        throw new ApiError(
+          StatusCodes.UNAUTHORIZED,
+          "Invalid token: No expiration date.",
+        );
+      }
+
+      const tokenExp = payload.exp * 1000;
+      const oneMonthFromNow = new Date();
+      oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+      if (tokenExp < oneMonthFromNow.getTime()) {
+        newRefreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
+        const hashedRefreshToken = await hashPassword(newRefreshToken);
+        await this.accountRepository.update(account.id, {
+          refreshToken: hashedRefreshToken,
+        });
+      }
+
+      return { token: newAccessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+      if (error instanceof TokenExpiredError || error instanceof JsonWebTokenError) {
+        throw new ApiError(
+          StatusCodes.UNAUTHORIZED,
+          "El token proporcionado es inválido o ha expirado.",
+        );
+      }
+      throw error;
+    }
   }
 }
