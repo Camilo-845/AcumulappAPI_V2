@@ -8,7 +8,6 @@ import { BusinessRepository } from "../business/Business.repository";
 import { AuthProviderRepository } from "../authProvider/AuthProvider.repository";
 import { getDetailsByIdDTO, LoginRequestDTO } from "./DTO/Request";
 import {
-  AccountDetailsResponseDTO,
   AuthResponseDTO,
   ClientAuthResponseDTO,
   CollaboratorAuthResponseDTO,
@@ -18,11 +17,13 @@ import { signJwt, JWT_REFRESH_EXPIRES_IN, verifyJwt } from "../../utils/jwt";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
 import { ICreateAccountData, IAccount } from "./Account.model";
 import { getDetailsByEmailDTO } from "./DTO/Request/account.request.dto";
+import {
+  AccountDetailsResponseDTO,
+  ClientAccountDetailsResponseDTO,
+  CollaboratorAccountDetailsResponseDTO,
+} from "./DTO/Response/accountDetails.response.dto";
 
 export class AccountService {
-  getDetailsById(accountId: number) {
-    throw new Error("Method not implemented.");
-  }
   private accountRepository: AccountRepository;
   private clientRepository: ClientRepository;
   private collaboratorRepository: CollaboratorRepository;
@@ -104,7 +105,9 @@ export class AccountService {
     const refreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
 
     const hashedRefreshToken = await hashPassword(refreshToken);
-    await this.accountRepository.update(account.id, { refreshToken: hashedRefreshToken });
+    await this.accountRepository.update(account.id, {
+      refreshToken: hashedRefreshToken,
+    });
 
     if (determinedUserType === "client") {
       const response: ClientAuthResponseDTO = {
@@ -189,7 +192,9 @@ export class AccountService {
     const refreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
 
     const hashedRefreshToken = await hashPassword(refreshToken);
-    await this.accountRepository.update(newAccount.id, { refreshToken: hashedRefreshToken });
+    await this.accountRepository.update(newAccount.id, {
+      refreshToken: hashedRefreshToken,
+    });
 
     const response: ClientAuthResponseDTO = {
       token,
@@ -257,7 +262,9 @@ export class AccountService {
     const refreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
 
     const hashedRefreshToken = await hashPassword(refreshToken);
-    await this.accountRepository.update(newAccount.id, { refreshToken: hashedRefreshToken });
+    await this.accountRepository.update(newAccount.id, {
+      refreshToken: hashedRefreshToken,
+    });
 
     const response: CollaboratorAuthResponseDTO = {
       token,
@@ -279,6 +286,46 @@ export class AccountService {
     return response;
   }
 
+  private async getAccountDetails(
+    account: IAccount,
+  ): Promise<AccountDetailsResponseDTO> {
+    const collaborators =
+      await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
+        account.id,
+      );
+
+    if (collaborators && collaborators.length > 0) {
+      const response: CollaboratorAccountDetailsResponseDTO = {
+        id: account.id,
+        email: account.email,
+        fullName: account.fullName,
+        userType: "collaborator",
+        collaboratorDetails: collaborators.map((c) => ({
+          businessId: c.idBusiness,
+          businessName: c.Business.name || "N/A",
+          role: c.Roles.name,
+        })),
+      };
+      return response;
+    }
+
+    const isClient = await this.clientRepository.findByAccountId(account.id);
+    if (isClient) {
+      const response: ClientAccountDetailsResponseDTO = {
+        id: account.id,
+        email: account.email,
+        fullName: account.fullName,
+        userType: "client",
+      };
+      return response;
+    }
+
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      "La cuenta no es ni cliente ni colaborador.",
+    );
+  }
+
   public async getAccountById(
     data: getDetailsByIdDTO,
   ): Promise<AccountDetailsResponseDTO> {
@@ -286,14 +333,7 @@ export class AccountService {
     if (!account) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Cuenta no encontrada.");
     }
-    return {
-      id: account.id,
-      email: account.email,
-      fullName: account.fullName,
-      isActive: account.isActive,
-      emailVerified: account.emailVerified,
-      profileImageURL: account.profileImageURL || null,
-    };
+    return this.getAccountDetails(account);
   }
   public async getAccountByEmail(
     data: getDetailsByEmailDTO,
@@ -302,14 +342,7 @@ export class AccountService {
     if (!account) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Cuenta no encontrada.");
     }
-    return {
-      id: account.id,
-      email: account.email,
-      fullName: account.fullName,
-      isActive: account.isActive,
-      emailVerified: account.emailVerified,
-      profileImageURL: account.profileImageURL || null,
-    };
+    return this.getAccountDetails(account);
   }
 
   public async refreshToken(
@@ -371,7 +404,10 @@ export class AccountService {
 
       return { token: newAccessToken, refreshToken: newRefreshToken };
     } catch (error) {
-      if (error instanceof TokenExpiredError || error instanceof JsonWebTokenError) {
+      if (
+        error instanceof TokenExpiredError ||
+        error instanceof JsonWebTokenError
+      ) {
         throw new ApiError(
           StatusCodes.UNAUTHORIZED,
           "El token proporcionado es inválido o ha expirado.",
