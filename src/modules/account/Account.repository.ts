@@ -39,6 +39,13 @@ export class AccountRepository {
     });
   }
 
+  async findByProviderUserId(providerUserId: string): Promise<IAccount | null> {
+    const account = await prisma.accounts.findFirst({
+      where: { providerUserId },
+    });
+    return account ? mapPrismaAccountToDomain(account) : null;
+  }
+
   async create(data: ICreateAccountData): Promise<IAccount> {
     const newAccount = await prisma.accounts.create({
       data: {

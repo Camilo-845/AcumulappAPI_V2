@@ -22,6 +22,15 @@ import {
   ClientAccountDetailsResponseDTO,
   CollaboratorAccountDetailsResponseDTO,
 } from "./DTO/Response/accountDetails.response.dto";
+import { clerkClient } from "@clerk/clerk-sdk-node";
+
+interface ClerkJwtPayload {
+  sub: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+}
 
 export class AccountService {
   private accountRepository: AccountRepository;
@@ -36,6 +45,141 @@ export class AccountService {
     this.collaboratorRepository = new CollaboratorRepository();
     this.authProviderRepository = new AuthProviderRepository();
     this.businessRepository = new BusinessRepository();
+  }
+
+  public async clerkSignIn(token: string): Promise<AuthResponseDTO> {
+    try {
+      const payload: ClerkJwtPayload = await clerkClient.verifyToken(token);
+
+      const email = payload.email;
+      if (!email) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          "El email no está disponible desde el proveedor.",
+        );
+      }
+
+      const clerkUserId = payload.sub;
+      let account =
+        await this.accountRepository.findByProviderUserId(clerkUserId);
+
+      if (!account) {
+        account = await this.accountRepository.findByEmail(email);
+        if (account && !account.providerUserId) {
+          await this.accountRepository.update(account.id, {
+            providerUserId: clerkUserId,
+          });
+        }
+      }
+
+      if (!account) {
+        const googleAuthProvider =
+          await this.authProviderRepository.findByName("google");
+        if (!googleAuthProvider) {
+          throw new Error('Proveedor de autenticación "google" no encontrado.');
+        }
+
+        const newAccountData: ICreateAccountData = {
+          email,
+          fullName:
+            `${payload.firstName || ""} ${payload.lastName || ""}`.trim() ||
+            email,
+          providerUserId: clerkUserId,
+          idAuthProvider: googleAuthProvider.id,
+          emailVerified: true,
+          profileImageURL: payload.imageUrl,
+        };
+        account = await this.accountRepository.create(newAccountData);
+        await this.clientRepository.create({ idAccount: account.id });
+      }
+
+      if (!account) {
+        throw new ApiError(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "No se pudo obtener o crear el usuario.",
+        );
+      }
+
+      const collaborators =
+        await this.collaboratorRepository.findByAccountIdWithBusinessAndRole(
+          account.id,
+        );
+      const isClient = await this.clientRepository.findByAccountId(account.id);
+
+      let userType: "client" | "collaborator" | "none" = "none";
+      if (isClient) userType = "client";
+      if (collaborators && collaborators.length > 0) userType = "collaborator";
+
+      if (userType === "none") {
+        await this.clientRepository.create({ idAccount: account.id });
+        userType = "client";
+      }
+
+      const jwtPayload = {
+        id: account.id,
+        email: account.email,
+        userType: userType,
+        collaboratorDetails: collaborators.map((c) => ({
+          businessId: c.idBusiness,
+          role: c.Roles.name,
+        })),
+      };
+
+      const accessToken = signJwt(jwtPayload);
+      const newRefreshToken = signJwt(jwtPayload, JWT_REFRESH_EXPIRES_IN);
+
+      const hashedRefreshToken = await hashPassword(newRefreshToken);
+      await this.accountRepository.update(account.id, {
+        refreshToken: hashedRefreshToken,
+      });
+
+      if (userType === "client") {
+        const response: ClientAuthResponseDTO = {
+          token: accessToken,
+          refreshToken: newRefreshToken,
+          account: {
+            id: account.id,
+            email: account.email,
+            fullName: account.fullName,
+            userType: "client",
+          },
+        };
+        return response;
+      } else if (
+        userType === "collaborator" &&
+        collaborators &&
+        collaborators.length > 0
+      ) {
+        const response: CollaboratorAuthResponseDTO = {
+          token: accessToken,
+          refreshToken: newRefreshToken,
+          account: {
+            id: account.id,
+            email: account.email,
+            fullName: account.fullName,
+            userType: "collaborator",
+            collaboratorDetails: collaborators.map((c) => ({
+              businessId: c.idBusiness,
+              businessName: c.Business.name || "N/A",
+              role: c.Roles.name,
+            })),
+          },
+        };
+        return response;
+      }
+
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "No se pudo determinar el tipo de usuario para la sesión.",
+      );
+    } catch (error: any) {
+      if (error instanceof ApiError) throw error;
+      console.error("Clerk sign-in error:", error);
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Token de Clerk inválido o expirado.",
+      );
+    }
   }
 
   public async login(
