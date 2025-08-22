@@ -1,5 +1,5 @@
 # Dockerfile de tu servidor
-FROM node:lts-alpine
+FROM node:20.19-alpine
 
 # Crear el directorio de la app
 RUN mkdir -p /usr/src/app
@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 # Instalar dependencias de la app
 COPY package.json /usr/src/app/
 COPY package-lock.json /usr/src/app/
-RUN npm ci --silent
+RUN npm install --silent
 
 # Copiar el código fuente
 COPY . /usr/src/app

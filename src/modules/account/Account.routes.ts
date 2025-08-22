@@ -5,6 +5,7 @@ import { refreshTokenRequestSchema } from "./DTO/Request/refreshToken.request.dt
 import {
   businessRegister,
   clientRegister,
+  clerkSignIn,
   getAccountDetailsByEmail,
   getAccountDetailsById,
   login,
@@ -16,6 +17,7 @@ import {
   getDetailsByIdSchema,
   loginQuerySchema,
 } from "./DTO/Request/account.request.dto";
+import { clerkMiddleware } from "@clerk/express";
 
 const router = Router();
 
@@ -49,5 +51,7 @@ router.get(
 );
 
 router.post("/refresh", validate(refreshTokenRequestSchema), refreshToken);
+
+router.post("/clerk-signin", clerkMiddleware(), clerkSignIn);
 
 export default router;

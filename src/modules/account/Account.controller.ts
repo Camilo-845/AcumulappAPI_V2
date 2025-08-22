@@ -4,9 +4,8 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
-import { getDetailsByIdDTO, LoginRequestDTO } from "./DTO/Request";
+import { getDetailsByIdDTO, LoginRequestDTO, getDetailsByEmailDTO, LoginQueryDTO } from "./DTO/Request";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
-import { getDetailsByEmailDTO, LoginQueryDTO } from "./DTO/Request/account.request.dto";
 
 const accountService = new AccountService();
 
@@ -49,8 +48,19 @@ export const getAccountDetailsByEmail = asyncHandler(
   },
 );
 
-export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
-  const newTokens = await accountService.refreshToken(refreshToken);
-  res.status(StatusCodes.OK).json(newTokens);
+export const refreshToken = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+    const newTokens = await accountService.refreshToken(refreshToken);
+    res.status(StatusCodes.OK).json(newTokens);
+  },
+);
+
+export const clerkSignIn = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, sessionClaims } = req.auth;
+  const authResponse = await accountService.clerkSignIn(
+    userId as string,
+    sessionClaims,
+  );
+  return res.status(StatusCodes.OK).json(authResponse);
 });

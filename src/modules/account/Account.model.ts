@@ -20,6 +20,8 @@ export interface ICreateAccountData {
   fullName: string;
   idAuthProvider: number;
   providerUserId?: string | null;
+  emailVerified?: boolean;
+  profileImageURL?: string | null;
   refreshToken?: string | null;
 }
 
