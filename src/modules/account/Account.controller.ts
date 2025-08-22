@@ -4,13 +4,8 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
-import { getDetailsByIdDTO, LoginRequestDTO } from "./DTO/Request";
+import { getDetailsByIdDTO, LoginRequestDTO, getDetailsByEmailDTO, LoginQueryDTO } from "./DTO/Request";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
-import {
-  getDetailsByEmailDTO,
-  LoginQueryDTO,
-} from "./DTO/Request/account.request.dto";
-import { ClerkSignInRequestDTO } from "./DTO/Request";
 
 const accountService = new AccountService();
 
@@ -62,7 +57,10 @@ export const refreshToken = asyncHandler(
 );
 
 export const clerkSignIn = asyncHandler(async (req: Request, res: Response) => {
-  const { token } = req.body as ClerkSignInRequestDTO;
-  const authResponse = await accountService.clerkSignIn(token);
+  const { userId, sessionClaims } = req.auth;
+  const authResponse = await accountService.clerkSignIn(
+    userId as string,
+    sessionClaims,
+  );
   return res.status(StatusCodes.OK).json(authResponse);
 });

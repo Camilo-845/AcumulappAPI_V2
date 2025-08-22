@@ -104,7 +104,7 @@ describe('ClientCardService', () => {
 
   describe('markAsRedeemed', () => {
     it('should mark a client card as redeemed', async () => {
-      const clientCard = { id: 1, uniqueCode: 'test-code' };
+      const clientCard = { id: 1, uniqueCode: 'test-code', idCardState: 2 };
       const updatedClientCard = { ...clientCard, idCardState: 3, uniqueCode: null };
 
       (ClientCardRepository.prototype.findByUniqueCode as jest.Mock).mockResolvedValue(clientCard);

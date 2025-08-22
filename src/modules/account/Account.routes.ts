@@ -1,6 +1,6 @@
 import { Router } from "express";
 import validate from "../../middelwares/validation";
-import { localRegisterRequestSchema, loginRequestSchema, clerkSignInRequestSchema } from "./DTO/Request";
+import { localRegisterRequestSchema, loginRequestSchema } from "./DTO/Request";
 import { refreshTokenRequestSchema } from "./DTO/Request/refreshToken.request.dto";
 import {
   businessRegister,
@@ -17,6 +17,7 @@ import {
   getDetailsByIdSchema,
   loginQuerySchema,
 } from "./DTO/Request/account.request.dto";
+import { clerkMiddleware } from "@clerk/express";
 
 const router = Router();
 
@@ -51,10 +52,6 @@ router.get(
 
 router.post("/refresh", validate(refreshTokenRequestSchema), refreshToken);
 
-router.post(
-  "/clerk-signin",
-  validate(clerkSignInRequestSchema),
-  clerkSignIn,
-);
+router.post("/clerk-signin", clerkMiddleware(), clerkSignIn);
 
 export default router;

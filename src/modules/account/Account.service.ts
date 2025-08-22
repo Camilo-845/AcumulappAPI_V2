@@ -22,15 +22,7 @@ import {
   ClientAccountDetailsResponseDTO,
   CollaboratorAccountDetailsResponseDTO,
 } from "./DTO/Response/accountDetails.response.dto";
-import { clerkClient } from "@clerk/clerk-sdk-node";
-
-interface ClerkJwtPayload {
-  sub: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
-}
+import { JwtPayload } from "@clerk/types";
 
 export class AccountService {
   private accountRepository: AccountRepository;
@@ -47,10 +39,11 @@ export class AccountService {
     this.businessRepository = new BusinessRepository();
   }
 
-  public async clerkSignIn(token: string): Promise<AuthResponseDTO> {
+  public async clerkSignIn(
+    clerkUserId: string,
+    payload: any,
+  ): Promise<AuthResponseDTO> {
     try {
-      const payload: ClerkJwtPayload = await clerkClient.verifyToken(token);
-
       const email = payload.email;
       if (!email) {
         throw new ApiError(
@@ -59,9 +52,7 @@ export class AccountService {
         );
       }
 
-      const clerkUserId = payload.sub;
-      let account =
-        await this.accountRepository.findByProviderUserId(clerkUserId);
+      let account = await this.accountRepository.findByProviderUserId(clerkUserId);
 
       if (!account) {
         account = await this.accountRepository.findByEmail(email);
@@ -82,8 +73,7 @@ export class AccountService {
         const newAccountData: ICreateAccountData = {
           email,
           fullName:
-            `${payload.firstName || ""} ${payload.lastName || ""}`.trim() ||
-            email,
+            `${payload.firstName || ""} ${payload.lastName || ""}`.trim() || email,
           providerUserId: clerkUserId,
           idAuthProvider: googleAuthProvider.id,
           emailVerified: true,
