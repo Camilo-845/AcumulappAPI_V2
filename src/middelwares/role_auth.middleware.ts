@@ -11,8 +11,9 @@ import { ApiError } from "../core";
 export const authorizeRoles = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    // The ID of the business being accessed, typically from URL parameters
-    const businessIdStr = req.params.id;
+    console.log("Busienss id");
+    // The ID of the business being accessed, typically from URL parameters or the request body
+    const businessIdStr = req.params.id || req.body.idBusiness || req.body.id;
 
     if (!user) {
       return next(

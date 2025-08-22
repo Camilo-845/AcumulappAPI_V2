@@ -25,11 +25,12 @@ export class ClientCardService {
   }
 
   public async createClientCard(data: CreateClientCardRequestDTO) {
-    const existingInactiveCard = await this.clientCardRepository.findByClientAndCardAndState(
-      data.idClient,
-      data.idCard,
-      4, // Estado inactivo
-    );
+    const existingInactiveCard =
+      await this.clientCardRepository.findByClientAndCardAndState(
+        data.idClient,
+        data.idCard,
+        4, // Estado inactivo
+      );
 
     if (existingInactiveCard) {
       return existingInactiveCard;
@@ -139,6 +140,9 @@ export class ClientCardService {
         StatusCodes.NOT_FOUND,
         "Tarjeta de cliente no encontrada",
       );
+    }
+    if (clientCard.idCardState != 4) {
+      throw new ApiError(StatusCodes.CONFLICT, "Tarjeta ya esta activa");
     }
     const card = await this.cardRepository.findById(clientCard.idCard);
     if (!card) {

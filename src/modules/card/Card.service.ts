@@ -21,6 +21,10 @@ export class CardService {
     this.cardStateRepository = new CardStateRepository();
   }
 
+  public async findById(id: number): Promise<ICard | null> {
+    return await this.cardRepository.findById(id);
+  }
+
   public async create(cardData: CreateCardRequestDTO): Promise<ICard> {
     return await this.cardRepository.create(cardData);
   }

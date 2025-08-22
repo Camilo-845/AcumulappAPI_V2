@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { asyncHandler } from "../../core";
+import { Request, Response, NextFunction } from "express";
+import { asyncHandler, ApiError } from "../../core";
 import { ClientCardService } from "./ClientCard.service";
 import { CreateClientCardRequestDTO } from "./DTO/Request/createClientCard.request.dto";
 import { StatusCodes } from "http-status-codes";
@@ -9,8 +9,29 @@ import {
   GetClientCardByBusinessRequestDTO,
   GetClientCardByClientRequestDTO,
 } from "./DTO/Request/getClientCards.request.dto";
+import { CardService } from "../card/Card.service";
 
 const clientCardService = new ClientCardService();
+const cardService = new CardService();
+
+export const getBusinessIdFromUniqueCode = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { uniqueCode } = req.params;
+    if (!uniqueCode) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Unique code is required");
+    }
+    const clientCard = await clientCardService.findByUniqueCode(uniqueCode);
+    if (!clientCard) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "ClientCard not found");
+    }
+    const card = await cardService.findById(clientCard.idCard);
+    if (!card) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Card not found");
+    }
+    req.body.idBusiness = card.idBusiness;
+    next();
+  },
+);
 
 export const createClientCard = asyncHandler(
   async (req: Request, res: Response) => {
@@ -105,3 +126,4 @@ export const getBusinessStats = asyncHandler(
     return res.status(StatusCodes.OK).json(stats);
   },
 );
+

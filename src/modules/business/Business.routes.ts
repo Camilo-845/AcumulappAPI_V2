@@ -13,6 +13,7 @@ import z from "zod";
 import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
 import { updateBusinessSchema } from "./DTO/Request/updateBusiness.request.dto";
 import { updateBusinessCategoriesSchema } from "./DTO/Request/updateBusinessCategories.request.dto";
+import { authorizeRoles } from "../../middelwares";
 
 const router = Router();
 
@@ -34,6 +35,7 @@ router.get("/:id", authenticateToken, getBusinessById);
 router.put(
   "/:id",
   authenticateToken,
+  authorizeRoles(["Owner"]),
   validate(updateBusinessSchema),
   completeBusinessProfile,
 );
@@ -41,6 +43,7 @@ router.put(
 router.put(
   "/:id/categories",
   authenticateToken,
+  authorizeRoles(["Owner"]),
   validate(updateBusinessCategoriesSchema),
   updateBusinessCategories,
 );

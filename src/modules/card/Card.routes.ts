@@ -11,6 +11,7 @@ import {
 } from "./Card.controller";
 import { createCardRequestSchema } from "./DTO/Request/createCard.request.dto";
 import { getDetailsByIdSchema } from "./DTO/Request/card.request.dto";
+import { authorizeRoles } from "../../middelwares";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.post(
   "/",
   authenticateToken,
   validate(createCardRequestSchema),
+  authorizeRoles(["Owner"]),
   createCard,
 );
 

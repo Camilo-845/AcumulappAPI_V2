@@ -12,6 +12,7 @@ import {
   findByUniqueCode,
   getAllClientCardsByBusiness,
   getAllClientCardsByClient,
+  getBusinessIdFromUniqueCode,
   getBusinessStats,
   markClientCardAsRedeemed,
 } from "./ClientCard.controller";
@@ -21,6 +22,7 @@ import {
   getClientCardByClientRequestSchema,
 } from "./DTO/Request/getClientCards.request.dto";
 import { getBusinessStatsRequestDto } from "./DTO/Request/clientCard.request.dto";
+import { authorizeRoles } from "../../middelwares";
 
 const router = Router();
 
@@ -55,17 +57,33 @@ router.get(
   getBusinessStats,
 );
 router.get("/:id", authenticateToken, findById);
-router.get("/unique-code/:uniqueCode", authenticateToken, findByUniqueCode);
-router.post("/activate/:uniqueCode", authenticateToken, activateCard);
+router.get(
+  "/unique-code/:uniqueCode",
+  authenticateToken,
+  getBusinessIdFromUniqueCode,
+  authorizeRoles(["Owner", "Employee"]),
+  findByUniqueCode,
+);
+router.post(
+  "/activate/:uniqueCode",
+  authenticateToken,
+  getBusinessIdFromUniqueCode,
+  authorizeRoles(["Owner", "Employee"]),
+  activateCard,
+);
 router.post(
   "/add-stamp/:uniqueCode",
   authenticateToken,
+  getBusinessIdFromUniqueCode,
+  authorizeRoles(["Owner", "Employee"]),
   validate(addStampRequestSchema),
   addStampToClientCard,
 );
 router.post(
   "/mark-as-redeemed/:uniqueCode",
   authenticateToken,
+  getBusinessIdFromUniqueCode,
+  authorizeRoles(["Owner", "Employee"]),
   markClientCardAsRedeemed,
 );
 
