@@ -32,6 +32,7 @@ const mapPrismaClientCardToDomain = (
         description: Cards.description,
         restrictions: Cards.restrictions,
         reward: Cards.reward,
+        isActive: Cards.isActive,
       }
     : null;
 

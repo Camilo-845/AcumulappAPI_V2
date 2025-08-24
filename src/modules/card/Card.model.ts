@@ -10,6 +10,7 @@ export interface ICard {
   restrictions: string;
   reward: string;
   business?: IBusiness;
+  isActive: boolean;
 }
 
 // Define la interfaz para los datos necesarios para crear una nueva Tarjeta
