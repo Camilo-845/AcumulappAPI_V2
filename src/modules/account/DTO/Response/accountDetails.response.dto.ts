@@ -2,6 +2,7 @@ export interface ClientAccountDetailsResponseDTO {
   id: number;
   email: string;
   fullName: string;
+  profileImageURL: string;
   userType: "client";
 }
 
@@ -10,6 +11,7 @@ export interface CollaboratorAccountDetailsResponseDTO {
   email: string;
   fullName: string;
   userType: "collaborator";
+  profileImageURL: string;
   collaboratorDetails: Array<{
     businessId: number;
     businessName: string;
@@ -20,3 +22,4 @@ export interface CollaboratorAccountDetailsResponseDTO {
 export type AccountDetailsResponseDTO =
   | ClientAccountDetailsResponseDTO
   | CollaboratorAccountDetailsResponseDTO;
+

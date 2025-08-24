@@ -16,6 +16,7 @@ import { comparePassword, hashPassword } from "../../utils/password";
 import { signJwt, JWT_REFRESH_EXPIRES_IN, verifyJwt } from "../../utils/jwt";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
 import { ICreateAccountData, IAccount } from "./Account.model";
+import { UpdateAccountRequestDTO } from "./DTO/Request/updateAccount.request.dto";
 import { getDetailsByEmailDTO } from "./DTO/Request/account.request.dto";
 import {
   AccountDetailsResponseDTO,
@@ -436,6 +437,7 @@ export class AccountService {
         email: account.email,
         fullName: account.fullName,
         userType: "collaborator",
+        profileImageURL: account.profileImageURL || "",
         collaboratorDetails: collaborators.map((c) => ({
           businessId: c.idBusiness,
           businessName: c.Business.name || "N/A",
@@ -450,6 +452,7 @@ export class AccountService {
       const response: ClientAccountDetailsResponseDTO = {
         id: account.id,
         email: account.email,
+        profileImageURL: account.profileImageURL || "",
         fullName: account.fullName,
         userType: "client",
       };
@@ -479,6 +482,17 @@ export class AccountService {
       throw new ApiError(StatusCodes.NOT_FOUND, "Cuenta no encontrada.");
     }
     return this.getAccountDetails(account);
+  }
+
+  public async updateAccount(
+    id: number,
+    accountData: UpdateAccountRequestDTO,
+  ): Promise<IAccount | null> {
+    const account = await this.accountRepository.findById(id);
+    if (!account) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Cuenta no encontrada.");
+    }
+    return await this.accountRepository.update(id, accountData);
   }
 
   public async refreshToken(

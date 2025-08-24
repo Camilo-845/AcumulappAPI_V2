@@ -63,7 +63,7 @@ export class AccountRepository {
 
   async update(
     id: number,
-    data: Partial<ICreateAccountData>,
+    data: Partial<IAccount>,
   ): Promise<IAccount> {
     const updatedAccount = await prisma.accounts.update({
       where: { id },

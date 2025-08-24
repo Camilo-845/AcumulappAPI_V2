@@ -10,8 +10,10 @@ import {
   getAccountDetailsById,
   login,
   refreshToken,
+  updateAccount,
 } from "./Account.controller";
 import { authenticateToken } from "../../middelwares/auth.middleware";
+import { updateAccountRequestSchema } from "./DTO/Request/updateAccount.request.dto";
 import {
   getDetailsByEmailSchema,
   getDetailsByIdSchema,
@@ -53,5 +55,12 @@ router.get(
 router.post("/refresh", validate(refreshTokenRequestSchema), refreshToken);
 
 router.post("/clerk-signin", clerkMiddleware(), clerkSignIn);
+
+router.put(
+  "/:id",
+  authenticateToken,
+  validate(updateAccountRequestSchema),
+  updateAccount,
+);
 
 export default router;

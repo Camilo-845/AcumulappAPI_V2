@@ -4,8 +4,17 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
 import { asyncHandler } from "../../core";
-import { getDetailsByIdDTO, LoginRequestDTO, getDetailsByEmailDTO, LoginQueryDTO } from "./DTO/Request";
+import {
+  getDetailsByIdDTO,
+  LoginRequestDTO,
+  getDetailsByEmailDTO,
+  LoginQueryDTO,
+} from "./DTO/Request";
 import { LocalRegisterRequestDTO } from "./DTO/Request/localRegister.request.dto";
+import {
+  UpdateAccountRequestDTO,
+  UpdateAccountRequestParamsDTO,
+} from "./DTO/Request/updateAccount.request.dto";
 
 const accountService = new AccountService();
 
@@ -64,3 +73,18 @@ export const clerkSignIn = asyncHandler(async (req: Request, res: Response) => {
   );
   return res.status(StatusCodes.OK).json(authResponse);
 });
+
+export const updateAccount = asyncHandler(
+  async (req: Request, res: Response) => {
+    const accountId = req.validatedData!
+      .params as UpdateAccountRequestParamsDTO;
+    const updateData: UpdateAccountRequestDTO = req.body;
+
+    const updatedAccount = await accountService.updateAccount(
+      accountId.id,
+      updateData,
+    );
+
+    return res.status(StatusCodes.OK).json(updatedAccount);
+  },
+);
