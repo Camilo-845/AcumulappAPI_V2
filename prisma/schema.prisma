@@ -22,21 +22,25 @@ model AuthProviders {
 model Business {
   id                      Int                       @id @default(autoincrement())
   name                    String?                   @db.VarChar(100)
+  description             String?                   @db.VarChar(1000)
   email                   String?                   @db.VarChar(255)
-  idLocation              Int?
   logoImage               String?                   @db.VarChar(500)
+  bannerImage             String?                   @db.VarChar(500)
   address                 String?                   @db.VarChar(250)
-  idPlan                  Int                       @default(1)
   fullInformation         Boolean                   @default(false)
-  Locations               Locations?                @relation(fields: [idLocation], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Plans                   Plans                     @relation(fields: [idPlan], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rating_average          Float                     @default(0) @db.Real
+  rating_count            Int                       @default(0)
+  location_latitude       Decimal?                  @db.Decimal(11, 8)
+  location_longitude      Decimal?                  @db.Decimal(11, 8)
+  createdAt               DateTime                  @default(now()) @db.Timestamp(6)
   BusinessCategories      BusinessCategories[]
+  BusinessLink            BusinessLink[]
   Cards                   Cards[]
   Collaborators           Collaborators[]
   CollaboratorsActivities CollaboratorsActivities[]
-  Links                   Links[]
-  Numbers                 Numbers[]
+  FavoritesBusiness       FavoritesBusiness[]
   Ratings                 Ratings[]
+  Subscriptions           Subscriptions[]
 }
 
 model BusinessCategories {
@@ -63,6 +67,8 @@ model Cards {
   description  String         @db.VarChar(2000)
   restrictions String         @db.VarChar(500)
   reward       String         @db.VarChar(500)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now()) @db.Timestamp(6)
   Business     Business       @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
   CardsClients CardsClients[]
 }
@@ -71,7 +77,6 @@ model Categories {
   id                 Int                  @id @default(autoincrement())
   name               String               @unique @db.VarChar(255)
   BusinessCategories BusinessCategories[]
-  Preferences        Preferences[]
 }
 
 model Collaborators {
@@ -90,35 +95,17 @@ model CollaboratorsActivities {
   idAccount    Int
   idBusiness   Int
   idActionType Int
-  oldValue     String?     @db.VarChar(255)
-  newValue     String?     @db.VarChar(255)
+  value        Int?
+  createdAt    DateTime    @default(now()) @db.Timestamp(6)
   Account      Accounts    @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
   ActionTypes  ActionTypes @relation(fields: [idActionType], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Business     Business    @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Links {
-  id         Int      @id @default(autoincrement())
-  idBusiness Int
-  value      String   @db.VarChar(500)
-  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model LocationTypes {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique @db.VarChar(150)
-  Locations Locations[]
-}
-
-model Locations {
-  id              Int           @id @default(autoincrement())
-  idFather        Int
-  idLocationType  Int
-  name            String        @db.VarChar(255)
-  Business        Business[]
-  Locations       Locations     @relation("LocationsToLocations", fields: [idFather], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  other_Locations Locations[]   @relation("LocationsToLocations")
-  LocationTypes   LocationTypes @relation(fields: [idLocationType], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(100)
+  BusinessLink BusinessLink[]
 }
 
 model Notifications {
@@ -128,26 +115,10 @@ model Notifications {
   AccountsNotifications AccountsNotifications[]
 }
 
-model Numbers {
-  id         Int      @id @default(autoincrement())
-  idBusiness Int
-  value      String   @db.VarChar(20)
-  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
 model Plans {
-  id       Int        @id @default(autoincrement())
-  name     String     @unique @db.VarChar(255)
-  Business Business[]
-}
-
-model Preferences {
-  idClient   Int        @default(autoincrement())
-  idCategory Int
-  Categories Categories @relation(fields: [idCategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Client     Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([idClient, idCategory])
+  id            Int             @id @default(autoincrement())
+  name          String          @unique @db.VarChar(255)
+  Subscriptions Subscriptions[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -186,11 +157,12 @@ model Accounts {
 }
 
 model Clients {
-  idAccount    Int            @id
-  CardsClients CardsClients[]
-  Accounts     Accounts       @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Preferences  Preferences[]
-  Ratings      Ratings[]
+  idAccount         Int                 @id
+  createdAt         DateTime            @default(now()) @db.Timestamp(6)
+  CardsClients      CardsClients[]
+  Accounts          Accounts            @relation(fields: [idAccount], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  FavoritesBusiness FavoritesBusiness[]
+  Ratings           Ratings[]
 }
 
 model AccountsNotifications {
@@ -212,4 +184,33 @@ model CardsClients {
   CardStates     CardStates @relation(fields: [idCardState], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Cards          Cards      @relation(fields: [idCard], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Clients        Clients    @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model FavoritesBusiness {
+  id         Int      @id @default(autoincrement())
+  idBusiness Int
+  idClient   Int
+  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Clients    Clients  @relation(fields: [idClient], references: [idAccount], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Subscriptions {
+  id           Int       @id @default(autoincrement())
+  idBusiness   Int
+  idPlan       Int
+  startDate    DateTime  @db.Timestamp(6)
+  endDate      DateTime? @db.Timestamp(6)
+  creationDate DateTime  @default(now()) @db.Timestamp(6)
+  Business     Business  @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Plans        Plans     @relation(fields: [idPlan], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model BusinessLink {
+  idLInk     Int
+  idBusiness Int
+  value      String   @db.VarChar(255)
+  Business   Business @relation(fields: [idBusiness], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Links      Links    @relation(fields: [idLInk], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([idLInk, idBusiness])
 }

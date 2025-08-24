@@ -2,19 +2,14 @@ import prisma from "../../config/db/prismaClient";
 import { IBusiness, ICreateBusinessData } from "./Business.model";
 import {
   Business,
-  Locations,
-  Plans,
   BusinessCategories,
   Categories,
   Prisma,
 } from "@prisma/client";
 import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
-import { ILocation } from "../location/Location.model";
 
 // Define el tipo extendido para incluir las relaciones
 type PrismaBusinessWithRelations = Business & {
-  Locations?: (Locations & { Locations?: Locations | null }) | null;
-  Plans?: Plans | null;
   BusinessCategories?: (BusinessCategories & {
     Categories: Categories;
   })[];
@@ -27,24 +22,6 @@ interface BusinessPaginationParams {
 
 // --- MAPPER FUNCTIONS ---
 
-const mapPrismaLocationToDomain = (
-  prismaLocation: Locations & { Locations?: Locations | null },
-): ILocation => {
-  const location: ILocation = {
-    id: prismaLocation.id,
-    name: prismaLocation.name,
-    idFather: prismaLocation.idFather,
-    idLocationType: prismaLocation.idLocationType,
-  };
-
-  // Mapeo recursivo para el padre
-  if (prismaLocation.Locations) {
-    location.father = mapPrismaLocationToDomain(prismaLocation.Locations);
-  }
-
-  return location;
-};
-
 const mapPrismaBusinessToDomain = (
   prismaBusiness: PrismaBusinessWithRelations,
 ): IBusiness => {
@@ -52,17 +29,9 @@ const mapPrismaBusinessToDomain = (
     id: prismaBusiness.id,
     name: prismaBusiness.name,
     email: prismaBusiness.email,
-    idLocation: prismaBusiness.idLocation,
     logoImage: prismaBusiness.logoImage,
     address: prismaBusiness.address,
-    idPlan: prismaBusiness.idPlan,
     fullInformation: prismaBusiness.fullInformation,
-    location: prismaBusiness.Locations
-      ? mapPrismaLocationToDomain(prismaBusiness.Locations)
-      : null,
-    plan: prismaBusiness.Plans
-      ? { id: prismaBusiness.Plans.id, name: prismaBusiness.Plans.name }
-      : null,
     categories: prismaBusiness.BusinessCategories?.map(
       (bc: BusinessCategories & { Categories: Categories }) => ({
         id: bc.Categories.id,
@@ -84,15 +53,9 @@ export class BusinessRepository {
     const business = await prisma.business.findUnique({
       where: { id },
       include: {
-        Plans: true,
         BusinessCategories: {
           include: {
             Categories: true,
-          },
-        },
-        Locations: {
-          include: {
-            Locations: true, // Incluir el padre de la ubicación
           },
         },
       },
@@ -108,16 +71,7 @@ export class BusinessRepository {
       logoImage: data.logoImage,
       address: data.address,
       fullInformation: data.fullInformation ?? false,
-      Plans: {
-        connect: { id: data.idPlan ?? 1 },
-      },
     };
-
-    if (data.idLocation) {
-      createData.Locations = {
-        connect: { id: data.idLocation },
-      };
-    }
 
     const newBusiness = await prisma.business.create({ data: createData });
     return mapPrismaBusinessToDomain(newBusiness);
@@ -142,19 +96,11 @@ export class BusinessRepository {
     if (data.logoImage) updateData.logoImage = data.logoImage;
     if (data.address) updateData.address = data.address;
 
-    if (data.idLocation) {
-      updateData.Locations = {
-        connect: { id: data.idLocation },
-      };
-    }
-
     const updatedBusiness = await prisma.business.update({
       where: { id },
       data: updateData,
       include: {
-        Plans: true,
         BusinessCategories: { include: { Categories: true } },
-        Locations: { include: { Locations: true } },
       },
     });
 
@@ -193,7 +139,9 @@ export class BusinessRepository {
     const whereClause: Prisma.BusinessWhereInput = {
       fullInformation: true,
       ...(name && { name: { contains: name, mode: "insensitive" } }),
-      ...(category && { BusinessCategories: { some: { idCategory: category } } }),
+      ...(category && {
+        BusinessCategories: { some: { idCategory: category } },
+      }),
     };
 
     const [businesses, total] = await prisma.$transaction([
@@ -204,7 +152,6 @@ export class BusinessRepository {
         orderBy: { name: "asc" },
         include: {
           BusinessCategories: { include: { Categories: true } },
-          Locations: true,
         },
       }),
       prisma.business.count({ where: whereClause }),

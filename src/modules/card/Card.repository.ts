@@ -80,6 +80,7 @@ export class CardRepository {
   async filAllCardsByBusiness(
     paginationParams: cardPaginationParams,
     businessId: number,
+    isActive: boolean,
   ) {
     const { limit, offset } = paginationParams;
 
@@ -87,6 +88,7 @@ export class CardRepository {
       prisma.cards.findMany({
         where: {
           idBusiness: businessId,
+          isActive: isActive,
         },
         take: limit,
         skip: offset,

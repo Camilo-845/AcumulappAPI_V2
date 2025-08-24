@@ -48,6 +48,7 @@ export class CardService {
   public async getAllCardsByBusiness(
     paginationParams: PaginationQueryParamsDTO,
     businessId: number,
+    isActive: boolean,
   ): Promise<PaginatedResponse<ICard>> {
     const { page, size } = paginationParams;
 
@@ -60,6 +61,7 @@ export class CardService {
         offset,
       },
       businessId,
+      isActive,
     );
 
     return buildPaginatedResponse(cards, total, paginationParams, baseUrl);
@@ -69,3 +71,4 @@ export class CardService {
     return await this.cardStateRepository.findAll();
   }
 }
+

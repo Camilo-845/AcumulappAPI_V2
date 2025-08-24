@@ -52,7 +52,8 @@ export class AccountService {
         );
       }
 
-      let account = await this.accountRepository.findByProviderUserId(clerkUserId);
+      let account =
+        await this.accountRepository.findByProviderUserId(clerkUserId);
 
       if (!account) {
         account = await this.accountRepository.findByEmail(email);
@@ -73,7 +74,8 @@ export class AccountService {
         const newAccountData: ICreateAccountData = {
           email,
           fullName:
-            `${payload.firstName || ""} ${payload.lastName || ""}`.trim() || email,
+            `${payload.firstName || ""} ${payload.lastName || ""}`.trim() ||
+            email,
           providerUserId: clerkUserId,
           idAuthProvider: googleAuthProvider.id,
           emailVerified: true,
@@ -387,7 +389,7 @@ export class AccountService {
       collaboratorDetails: [
         {
           businessId: newBusiness.id,
-          role: "owner",
+          role: "Owner",
         },
       ],
     };
@@ -412,7 +414,7 @@ export class AccountService {
           {
             businessId: newBusiness.id,
             businessName: newBusiness.name || "N/A",
-            role: "owner",
+            role: "Owner",
           },
         ],
       },

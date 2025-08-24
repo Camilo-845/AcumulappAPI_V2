@@ -10,7 +10,10 @@ import {
   getAllCardStates,
 } from "./Card.controller";
 import { createCardRequestSchema } from "./DTO/Request/createCard.request.dto";
-import { getDetailsByIdSchema } from "./DTO/Request/card.request.dto";
+import {
+  getDetailsByIdQuerySchema,
+  getDetailsByIdSchema,
+} from "./DTO/Request/card.request.dto";
 import { authorizeRoles } from "../../middelwares";
 
 const router = Router();
@@ -21,11 +24,18 @@ const cardListRouteSchema = z.object({
 
 router.get("/", authenticateToken, validate(cardListRouteSchema), getAllCards);
 router.get("/states", authenticateToken, getAllCardStates);
+
+const getCardsByBusinessSchema = z.object({
+  params: getDetailsByIdSchema.shape.params,
+  query: getDetailsByIdQuerySchema.shape.query.extend(
+    paginationQueryParams.shape,
+  ),
+});
+
 router.get(
   "/business/:id",
   authenticateToken,
-  validate(getDetailsByIdSchema),
-  validate(cardListRouteSchema),
+  validate(getCardsByBusinessSchema),
   getAllCardsByBusinessId,
 );
 router.post(
