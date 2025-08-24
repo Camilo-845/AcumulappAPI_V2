@@ -112,4 +112,103 @@ export class BusinessService {
     }
     await this.businessRepository.updateBusinessLinks(id, links);
   }
+
+  public async markBusinessAsFavorite(
+    businessId: number,
+    clientId: number,
+  ): Promise<void> {
+    const business = await this.businessRepository.findById(businessId);
+    if (!business) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
+    }
+
+    const isFavorite = await this.businessRepository.isBusinessFavorite(
+      businessId,
+      clientId,
+    );
+    if (isFavorite) {
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "El negocio ya está marcado como favorito.",
+      );
+    }
+
+    await this.businessRepository.addFavoriteBusiness(businessId, clientId);
+  }
+
+  public async unmarkBusinessAsFavorite(
+    businessId: number,
+    clientId: number,
+  ): Promise<void> {
+    const business = await this.businessRepository.findById(businessId);
+    if (!business) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
+    }
+
+    const isFavorite = await this.businessRepository.isBusinessFavorite(
+      businessId,
+      clientId,
+    );
+    if (!isFavorite) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "El negocio no está marcado como favorito.",
+      );
+    }
+
+    await this.businessRepository.removeFavoriteBusiness(businessId, clientId);
+  }
+
+  public async checkIfBusinessIsFavorite(
+    businessId: number,
+    clientId: number,
+  ): Promise<boolean> {
+    const business = await this.businessRepository.findById(businessId);
+    if (!business) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
+    }
+
+    return await this.businessRepository.isBusinessFavorite(businessId, clientId);
+  }
+
+  public async getFavoriteBusiness(
+    clientId: number,
+    paginationParams: PaginationQueryParamsDTO,
+    filters: GetBusinessFiltersRequestDTO,
+  ): Promise<PaginatedResponse<IBusiness>> {
+    const { page, size } = paginationParams;
+    const baseUrl = `${environment.baseUrl}/api/v1/business/favorites`;
+
+    const offset = (page - 1) * size;
+    const limit = size;
+
+    const { business, total } = await this.businessRepository.findFavoriteBusinessByClientId(
+      clientId,
+      { limit, offset },
+      filters,
+    );
+
+    const totalPages = Math.ceil(total / size);
+
+    const getPageUrl = (p: number, s: number) => {
+      const url = new URL(baseUrl);
+      url.searchParams.set("page", p.toString());
+      url.searchParams.set("size", s.toString());
+      return url.toString();
+    };
+
+    return {
+      data: business,
+      pagination: {
+        total_items: total,
+        total_pages: totalPages,
+        current_page: page,
+        page_size: size,
+        next_page: page < totalPages ? getPageUrl(page + 1, size) : null,
+        prev_page: page > 1 ? getPageUrl(page - 1, size) : null,
+        first_page: getPageUrl(1, size),
+        last_page: getPageUrl(totalPages, size),
+      },
+    };
+  }
 }

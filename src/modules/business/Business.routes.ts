@@ -9,8 +9,13 @@ import {
   completeBusinessProfile,
   updateBusinessCategories,
   updateBusinessLinks,
+  getFavoriteBusiness,
+  markBusinessAsFavorite,
+  unmarkBusinessAsFavorite,
+  isFavoriteBusiness,
 } from "./Business.controller";
 import z from "zod";
+import { businessIdParamSchema } from "./DTO/Request/businessId.request.dto";
 import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
 import { updateBusinessSchema } from "./DTO/Request/updateBusiness.request.dto";
 import { updateBusinessCategoriesSchema } from "./DTO/Request/updateBusinessCategories.request.dto";
@@ -32,8 +37,37 @@ router.get(
 );
 
 router.get("/categories", authenticateToken, getAllBusinessCategories);
-router.get("/:id", authenticateToken, getBusinessById);
 
+router.get(
+  "/favorites",
+  authenticateToken,
+  validate(getBusinessFiltersRequestSchema),
+  validate(businessListRouteSchema),
+  getFavoriteBusiness,
+);
+
+router.post(
+  "/mark-as-favorite/:businessId",
+  authenticateToken,
+  validate(businessIdParamSchema),
+  markBusinessAsFavorite,
+);
+
+router.post(
+  "/unmark-as-favorite/:businessId",
+  authenticateToken,
+  validate(businessIdParamSchema),
+  unmarkBusinessAsFavorite,
+);
+
+router.get(
+  "/is-favorite/:businessId",
+  authenticateToken,
+  validate(businessIdParamSchema),
+  isFavoriteBusiness,
+);
+
+router.get("/:id", authenticateToken, getBusinessById);
 router.put(
   "/:id",
   authenticateToken,

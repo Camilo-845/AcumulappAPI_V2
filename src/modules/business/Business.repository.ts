@@ -1,5 +1,9 @@
 import prisma from "../../config/db/prismaClient";
-import { IBusiness, ICreateBusinessData, IBusinessLink } from "./Business.model";
+import {
+  IBusiness,
+  ICreateBusinessData,
+  IBusinessLink,
+} from "./Business.model";
 import {
   Business,
   BusinessCategories,
@@ -134,8 +138,10 @@ export class BusinessRepository {
     if (data.logoImage) updateData.logoImage = data.logoImage;
     if (data.bannerImage) updateData.bannerImage = data.bannerImage;
     if (data.address) updateData.address = data.address;
-    if (data.location_latitude) updateData.location_latitude = data.location_latitude;
-    if (data.location_longitude) updateData.location_longitude = data.location_longitude;
+    if (data.location_latitude)
+      updateData.location_latitude = data.location_latitude;
+    if (data.location_longitude)
+      updateData.location_longitude = data.location_longitude;
 
     const updatedBusiness = await prisma.business.update({
       where: { id },
@@ -221,5 +227,83 @@ export class BusinessRepository {
       business: businesses.map(mapPrismaBusinessToDomain),
       total,
     };
+  }
+
+  async findFavoriteBusinessByClientId(
+    clientId: number,
+    paginationParams: BusinessPaginationParams,
+    filters: GetBusinessFiltersRequestDTO,
+  ): Promise<{ business: IBusiness[]; total: number }> {
+    const { limit, offset } = paginationParams;
+    const { name, category } = filters;
+
+    const whereClause: Prisma.BusinessWhereInput = {
+      fullInformation: true,
+      FavoritesBusiness: {
+        some: {
+          idClient: clientId,
+        },
+      },
+      ...(name && { name: { contains: name, mode: "insensitive" } }),
+      ...(category && {
+        BusinessCategories: { some: { idCategory: category } },
+      }),
+    };
+
+    const [businesses, total] = await prisma.$transaction([
+      prisma.business.findMany({
+        where: whereClause,
+        take: limit,
+        skip: offset,
+        orderBy: { name: "asc" },
+        include: {
+          BusinessCategories: { include: { Categories: true } },
+          BusinessLink: { include: { Links: true } },
+        },
+      }),
+      prisma.business.count({ where: whereClause }),
+    ]);
+
+    return {
+      business: businesses.map(mapPrismaBusinessToDomain),
+      total,
+    };
+  }
+
+  async addFavoriteBusiness(
+    businessId: number,
+    clientId: number,
+  ): Promise<void> {
+    await prisma.favoritesBusiness.create({
+      data: {
+        idBusiness: businessId,
+        idClient: clientId,
+      },
+    });
+  }
+
+  async removeFavoriteBusiness(
+    businessId: number,
+    clientId: number,
+  ): Promise<void> {
+    await prisma.favoritesBusiness.deleteMany({
+      where: {
+        idBusiness: businessId,
+        idClient: clientId,
+      },
+    });
+  }
+
+  async isBusinessFavorite(
+    businessId: number,
+    clientId: number,
+  ): Promise<boolean> {
+    const favorite = await prisma.favoritesBusiness.findFirst({
+      where: {
+        idBusiness: businessId,
+        idClient: clientId,
+      },
+    });
+    return !!favorite;
   }
 }
