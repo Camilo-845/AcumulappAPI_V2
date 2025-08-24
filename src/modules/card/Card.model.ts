@@ -26,11 +26,11 @@ export interface ICreateCardData {
 
 // Opcional: Interfaz para los datos de actualización (todas las propiedades opcionales)
 export interface IUpdateCardData {
-  idBusiness?: number;
-  name: string;
+  name?: string;
   expiration?: number;
   maxStamp?: number;
   description?: string;
-  restrictions: string;
-  reward: string;
+  restrictions?: string;
+  reward?: string;
+  isActive?: boolean;
 }

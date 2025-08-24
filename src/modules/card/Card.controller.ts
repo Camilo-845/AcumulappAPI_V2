@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../core";
 import { CreateCardRequestDTO } from "./DTO/Request/createCard.request.dto";
+import {
+  UpdateCardRequestDTO,
+  UpdateCardRequestParamsDTO,
+} from "./DTO/Request/updateCard.request.dto";
 import { CardService } from "./Card.service";
 import { StatusCodes } from "http-status-codes";
 import { PaginationQueryParamsDTO } from "../../core/dtos/pagination.dto";
@@ -54,3 +58,12 @@ export const getAllCardStates = asyncHandler(
     return res.status(StatusCodes.OK).json(cardStates);
   },
 );
+
+export const updateCard = asyncHandler(async (req: Request, res: Response) => {
+  const cardId = req.validatedData!.params as UpdateCardRequestParamsDTO;
+  const updateData: UpdateCardRequestDTO = req.body;
+
+  const updatedCard = await cardService.updateCard(cardId.id, updateData);
+
+  return res.status(StatusCodes.OK).json(updatedCard);
+});

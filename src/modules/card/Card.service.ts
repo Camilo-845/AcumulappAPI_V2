@@ -4,11 +4,13 @@ import {
   PaginationQueryParamsDTO,
 } from "../../core/dtos/pagination.dto";
 import { buildPaginatedResponse } from "../../utils/pagination";
-import { ICard } from "./Card.model";
+import { ICard, IUpdateCardData } from "./Card.model";
 import { CardRepository } from "./Card.repository";
 import { CreateCardRequestDTO } from "./DTO/Request/createCard.request.dto";
 import { CardStateRepository } from "../cardState/CardState.repository";
 import { ICardState } from "../cardState/CardState.model";
+import { ApiError } from "../../core";
+import { StatusCodes } from "http-status-codes";
 
 const baseUrl = `${environment.baseUrl}/api/v1/card`;
 
@@ -70,5 +72,15 @@ export class CardService {
   public async getAllCardStates(): Promise<ICardState[]> {
     return await this.cardStateRepository.findAll();
   }
-}
 
+  public async updateCard(
+    id: number,
+    cardData: IUpdateCardData,
+  ): Promise<ICard | null> {
+    const card = await this.cardRepository.findById(id);
+    if (!card) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Card not found");
+    }
+    return await this.cardRepository.update(id, cardData);
+  }
+}

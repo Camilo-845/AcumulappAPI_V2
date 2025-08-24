@@ -46,15 +46,7 @@ export class CardRepository {
   async update(id: number, data: IUpdateCardData): Promise<ICard | null> {
     const updatedCard = await prisma.cards.update({
       where: { id },
-      data: {
-        idBusiness: data.idBusiness,
-        expiration: data.expiration,
-        maxStamp: data.maxStamp,
-        description: data.description,
-        restrictions: data.restrictions,
-        reward: data.reward,
-        name: data.name,
-      },
+      data,
     });
     return mapPrismaCardToDomain(updatedCard);
   }

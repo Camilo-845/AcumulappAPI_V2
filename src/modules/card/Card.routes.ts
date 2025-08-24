@@ -8,8 +8,10 @@ import {
   getAllCards,
   getAllCardsByBusinessId,
   getAllCardStates,
+  updateCard,
 } from "./Card.controller";
 import { createCardRequestSchema } from "./DTO/Request/createCard.request.dto";
+import { updateCardRequestSchema } from "./DTO/Request/updateCard.request.dto";
 import {
   getDetailsByIdQuerySchema,
   getDetailsByIdSchema,
@@ -44,6 +46,14 @@ router.post(
   validate(createCardRequestSchema),
   authorizeRoles(["Owner"]),
   createCard,
+);
+
+router.put(
+  "/:id",
+  authenticateToken,
+  authorizeRoles(["Owner"]),
+  validate(updateCardRequestSchema),
+  updateCard,
 );
 
 export default router;
