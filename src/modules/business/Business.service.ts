@@ -74,10 +74,13 @@ export class BusinessService {
     id: number,
     data: {
       name?: string;
+      description?: string;
       email?: string;
-      idLocation?: number;
       logoImage?: string;
+      bannerImage?: string;
       address?: string;
+      location_latitude?: number;
+      location_longitude?: number;
     },
   ): Promise<IBusiness | null> {
     const business = await this.businessRepository.findById(id);
@@ -97,5 +100,16 @@ export class BusinessService {
       throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
     }
     await this.businessRepository.updateBusinessCategories(id, categoryIds);
+  }
+
+  public async updateBusinessLinks(
+    id: number,
+    links: { idLink: number; value: string }[],
+  ): Promise<void> {
+    const business = await this.businessRepository.findById(id);
+    if (!business) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Negocio no encontrado.");
+    }
+    await this.businessRepository.updateBusinessLinks(id, links);
   }
 }

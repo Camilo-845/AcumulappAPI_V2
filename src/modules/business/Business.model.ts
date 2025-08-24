@@ -1,23 +1,35 @@
 import { IBusinessCategory } from "../businessCategories/BusinessCategories.model";
-import { IPlan } from "../plan/Plan.model";
+import { ILink } from "../links/Links.model";
+
+export interface IBusinessLink extends ILink {
+  value: string;
+}
 
 export interface IBusiness {
   id: number;
   name?: string | null;
+  description?: string | null;
   email?: string | null;
   logoImage?: string | null;
-  address?: string | null; // Corregido a 'address' en camelCase si tu DB lo tiene en minúscula
+  bannerImage?: string | null;
+  address?: string | null;
   fullInformation: boolean;
-
+  rating_average: number;
+  rating_count: number;
+  location_latitude?: number | null;
+  location_longitude?: number | null;
+  createdAt: Date;
   categories?: IBusinessCategory[] | null;
+  links?: IBusinessLink[] | null;
 }
 
 export interface ICreateBusinessData {
   name?: string;
+  description?: string;
   email?: string;
-  idLocation?: number;
   logoImage?: string;
+  bannerImage?: string;
   address?: string;
-  idPlan?: number; // Puede ser opcional si tiene un default en la DB
-  fullInformation?: boolean; // Puede ser opcional si tiene un default en la DB
+  location_latitude?: number;
+  location_longitude?: number;
 }

@@ -4,6 +4,7 @@ import { PaginationQueryParamsDTO } from "../../core/dtos/pagination.dto";
 import { BusinessService } from "./Business.service";
 import { Request, Response } from "express";
 import { GetBusinessFiltersRequestDTO } from "./DTO/Request/getBusinessFilters.request.dto";
+import { UpdateBusinessLinksRequestDTO } from "./DTO/Request/updateBusinessLinks.request.dto";
 
 const businessService = new BusinessService();
 
@@ -44,10 +45,13 @@ export const completeBusinessProfile = asyncHandler(
     const businessId = Number(req.validatedData!.params!.id);
     const updateData = req.validatedData!.body as {
       name?: string;
+      description?: string;
       email?: string;
-      idLocation?: number;
       logoImage?: string;
+      bannerImage?: string;
       address?: string;
+      location_latitude?: number;
+      location_longitude?: number;
     };
 
     const updatedBusiness = await businessService.completeBusinessProfile(
@@ -71,5 +75,18 @@ export const updateBusinessCategories = asyncHandler(
     return res
       .status(StatusCodes.OK)
       .json({ message: "Categorías actualizadas exitosamente." });
+  },
+);
+
+export const updateBusinessLinks = asyncHandler(
+  async (req: Request, res: Response) => {
+    const businessId = Number(req.validatedData!.params!.id);
+    const { links } = req.validatedData!.body as UpdateBusinessLinksRequestDTO;
+
+    await businessService.updateBusinessLinks(businessId, links);
+
+    return res
+      .status(StatusCodes.OK)
+      .json({ message: "Links actualizados exitosamente." });
   },
 );

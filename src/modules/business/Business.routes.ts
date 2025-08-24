@@ -8,11 +8,13 @@ import {
   getBusinessById,
   completeBusinessProfile,
   updateBusinessCategories,
+  updateBusinessLinks,
 } from "./Business.controller";
 import z from "zod";
 import { getBusinessFiltersRequestSchema } from "./DTO/Request/getBusinessFilters.request.dto";
 import { updateBusinessSchema } from "./DTO/Request/updateBusiness.request.dto";
 import { updateBusinessCategoriesSchema } from "./DTO/Request/updateBusinessCategories.request.dto";
+import { updateBusinessLinksSchema } from "./DTO/Request/updateBusinessLinks.request.dto";
 import { authorizeRoles } from "../../middelwares";
 
 const router = Router();
@@ -46,6 +48,14 @@ router.put(
   authorizeRoles(["Owner"]),
   validate(updateBusinessCategoriesSchema),
   updateBusinessCategories,
+);
+
+router.put(
+  "/:id/links",
+  authenticateToken,
+  authorizeRoles(["Owner"]),
+  validate(updateBusinessLinksSchema),
+  updateBusinessLinks,
 );
 
 export default router;
