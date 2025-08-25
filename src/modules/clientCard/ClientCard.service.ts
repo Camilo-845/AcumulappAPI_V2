@@ -12,16 +12,19 @@ import {
 } from "./DTO/Request/getClientCardsFilters.request.dto";
 import { buildPaginatedResponse } from "../../utils/pagination";
 import { CardRepository } from "../card/Card.repository";
+import { SubscriptionService } from "../subscription/Subscription.service";
 
 const baseUrl = `${environment.baseUrl}/api/v1/card`;
 
 export class ClientCardService {
   private clientCardRepository: ClientCardRepository;
   private cardRepository: CardRepository;
+  private subscriptionService: SubscriptionService;
 
   constructor() {
     this.clientCardRepository = new ClientCardRepository();
     this.cardRepository = new CardRepository();
+    this.subscriptionService = new SubscriptionService();
   }
 
   public async createClientCard(data: CreateClientCardRequestDTO) {
@@ -147,6 +150,29 @@ export class ClientCardService {
     const card = await this.cardRepository.findById(clientCard.idCard);
     if (!card) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Tarjeta no encontrada");
+    }
+
+    // Check active client cards limit for free plan
+    const data = await this.getAllClientCardsByBusinessAndState(
+      { page: 1, size: 1 }, // Only need count, so page 1, size 1 is enough
+      { idBusiness: card.idBusiness, idState: 1 },
+    );
+    const activeClientCardsCount = data.pagination.total_items;
+
+    if (
+      activeClientCardsCount >=
+      environment.freePlansOptions.maxActiveClientCards
+    ) {
+      const hasActiveSubscription =
+        await this.subscriptionService.isBusinessSubscriptionActive(
+          card.idBusiness,
+        );
+      if (!hasActiveSubscription) {
+        throw new ApiError(
+          StatusCodes.FORBIDDEN,
+          "El negocio ha alcanzado el límite de tarjetas de cliente activas para el plan gratuito. Se requiere una suscripción activa para activar más tarjetas.",
+        );
+      }
     }
 
     const durationInMinutes = card.expiration; // This is the duration in minutes from the Card model

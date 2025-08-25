@@ -19,6 +19,14 @@ export const environment = {
 
   awsBucketName: process.env.AWS_BUCKET_NAME || "",
 
+  freePlansOptions: {
+    maxActiveClientCards: parseInt(
+      process.env.FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS || "20",
+      10,
+    ),
+    maxCards: parseInt(process.env.FREE_PLAN_MAX_CARDS || "1", 10),
+  },
+
   // db: {
   //     host: process.env.DB_HOST,
   //     port: parseInt(process.env.DB_PORT || '5432', 10),
