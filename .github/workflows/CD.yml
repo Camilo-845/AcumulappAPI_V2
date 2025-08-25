@@ -1,0 +1,67 @@
+name: CD Production Deploy
+
+on:
+  push:
+    branches:
+      - Develop
+      - Production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Define el entorno de despliegue. Asegúrate de que este nombre (production)
+    # coincida con el nombre del entorno que creaste en GitHub.
+    environment: production
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/acumulapp_api:latest
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Autenticación en Docker Hub en el servidor
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+            # Bajar la nueva imagen y remover la vieja
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/acumulapp_api:latest
+
+            # Detener y remover el contenedor viejo
+            docker stop my-api || true
+            docker rm my-api || true
+            
+            # Iniciar el nuevo contenedor, pasando las variables de entorno una por una
+            docker run -d --name my-api \
+            -p 80:${{ var.PORT }} \
+            -e PORT=${{ var.PORT }} \
+            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            -e JWT_EXPIRES_IN=${{ var.JWT_EXPIRES_IN }} \
+            -e JWT_REFRESH_EXPIRES_IN=${{ var.JWT_REFRESH_EXPIRES_IN }} \
+            -e BASE_URL=${{ var.BASE_URL }} \
+            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            -e AWS_REGION=${{ var.AWS_REGION }} \
+            -e AWS_BUCKET_NAME=${{ var.AWS_BUCKET_NAME }} \
+            -e FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS=${{ var.FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS }} \
+            -e FREE_PLAN_MAX_CARDS=${{ var.FREE_PLAN_MAX_CARDS }} \
+            # ¡Asegúrate de incluir todas tus variables de entorno aquí!
+            ${{ secrets.DOCKERHUB_USERNAME }}/acumulapp_api:latest
+            
+            # Limpiar imágenes no usadas para liberar espacio
+            docker image prune -f
