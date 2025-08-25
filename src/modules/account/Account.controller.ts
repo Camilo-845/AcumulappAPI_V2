@@ -3,7 +3,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AccountService } from "./Account.service";
-import { asyncHandler } from "../../core";
+import { ApiError, asyncHandler } from "../../core";
 import {
   getDetailsByIdDTO,
   LoginRequestDTO,
@@ -43,8 +43,14 @@ export const businessRegister = asyncHandler(
 
 export const getAccountDetailsById = asyncHandler(
   async (req: Request, res: Response) => {
-    const data = req.validatedData!.params as getDetailsByIdDTO;
-    const accountDetails = await accountService.getAccountById(data);
+    if (!req.user || !req.user.id) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid token");
+    }
+    const clientId = req.user.id as number;
+
+    const accountDetails = await accountService.getAccountById({
+      id: clientId,
+    });
     return res.status(StatusCodes.OK).json(accountDetails);
   },
 );
@@ -76,12 +82,14 @@ export const clerkSignIn = asyncHandler(async (req: Request, res: Response) => {
 
 export const updateAccount = asyncHandler(
   async (req: Request, res: Response) => {
-    const accountId = req.validatedData!
-      .params as UpdateAccountRequestParamsDTO;
+    if (!req.user || !req.user.id) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid token");
+    }
+    const clientId = req.user.id as number;
     const updateData: UpdateAccountRequestDTO = req.body;
 
     const updatedAccount = await accountService.updateAccount(
-      accountId.id,
+      clientId,
       updateData,
     );
 
