@@ -7,6 +7,7 @@ import clientCardRoutes from "../../../modules/clientCard/ClientCard.routes";
 import imageRoutes from "../../../modules/image/Image.routes";
 import ratingRoutes from "../../../modules/rating/Rating.routes";
 import linksRoutes from "../../../modules/links/Links.routes";
+import subscriptionRoutes from "../../../modules/subscription/Subscription.routes";
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use("/client-card", clientCardRoutes);
 router.use("/image", imageRoutes);
 router.use("/rating", ratingRoutes);
 router.use("/links", linksRoutes);
+router.use("/subscription", subscriptionRoutes);
 
 export default router;
