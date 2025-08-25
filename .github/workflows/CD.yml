@@ -48,18 +48,18 @@ jobs:
             
             # Iniciar el nuevo contenedor, pasando las variables de entorno una por una
             docker run -d --name my-api \
-            -p 80:${{ var.PORT }} \
-            -e PORT=${{ var.PORT }} \
+            -p 80:${{ vars.PORT }} \
+            -e PORT=${{ vars.PORT }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e JWT_EXPIRES_IN=${{ var.JWT_EXPIRES_IN }} \
-            -e JWT_REFRESH_EXPIRES_IN=${{ var.JWT_REFRESH_EXPIRES_IN }} \
-            -e BASE_URL=${{ var.BASE_URL }} \
+            -e JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }} \
+            -e JWT_REFRESH_EXPIRES_IN=${{ vars.JWT_REFRESH_EXPIRES_IN }} \
+            -e BASE_URL=${{ vars.BASE_URL }} \
             -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -e AWS_REGION=${{ var.AWS_REGION }} \
-            -e AWS_BUCKET_NAME=${{ var.AWS_BUCKET_NAME }} \
-            -e FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS=${{ var.FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS }} \
-            -e FREE_PLAN_MAX_CARDS=${{ var.FREE_PLAN_MAX_CARDS }} \
+            -e AWS_REGION=${{ vars.AWS_REGION }} \
+            -e AWS_BUCKET_NAME=${{ vars.AWS_BUCKET_NAME }} \
+            -e FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS=${{ vars.FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS }} \
+            -e FREE_PLAN_MAX_CARDS=${{ vars.FREE_PLAN_MAX_CARDS }} \
             # ¡Asegúrate de incluir todas tus variables de entorno aquí!
             ${{ secrets.DOCKERHUB_USERNAME }}/acumulapp_api:latest
             
