@@ -3,8 +3,8 @@ name: CD Production Deploy
 on:
   push:
     branches:
-      - develop
-      - production
+      - Develop
+      - Production
 
 jobs:
   deploy:
