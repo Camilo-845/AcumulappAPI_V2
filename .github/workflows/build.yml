@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    environment: production # Use the 'production' environment
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -16,28 +17,43 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Create a dummy .env file for testing
-        run: |
-          echo "JWT_SECRET=test_secret_key" >> .env
-          echo "AWS_ACCESS_KEY_ID=test_access_key" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=test_secret" >> .env
-          echo "AWS_REGION=us-east-1" >> .env
-          echo "AWS_BUCKET_NAME=test_bucket" >> .env
-          echo "FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS=20" >> .env
-          echo "FREE_PLAN_MAX_CARDS=1" >> .env
-          echo "PORT=8080" >> .env
-          # Add any other required variables here
-
       - name: Build Docker Image
         run: docker build . --tag my-api-test
 
       - name: Run Docker Container and Check for Startup Errors
         run: |
-          docker run --rm --name my-api-test-container -p 8080:8080 --env-file .env my-api-test &
-          sleep 5 # Give the container a few seconds to start
+          # Use secrets and variables from the production environment
+          # Construct the docker run command dynamically
+            # This is more robust than a single, long line.
+            DOCKER_RUN_CMD="docker run -d --name my-api-test-container -p 80:8080"
+            DOCKER_RUN_CMD+=" -e PORT=${{ vars.PORT }}"
+            DOCKER_RUN_CMD+=" -e JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            DOCKER_RUN_CMD+=" -e JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }}"
+            DOCKER_RUN_CMD+=" -e JWT_REFRESH_EXPIRES_IN=${{ vars.JWT_REFRESH_EXPIRES_IN }}"
+            DOCKER_RUN_CMD+=" -e BASE_URL=${{ vars.BASE_URL }}"
+            DOCKER_RUN_CMD+=" -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}"
+            DOCKER_RUN_CMD+=" -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            DOCKER_RUN_CMD+=" -e AWS_REGION=${{ vars.AWS_REGION }}"
+            DOCKER_RUN_CMD+=" -e AWS_BUCKET_NAME=${{ vars.AWS_BUCKET_NAME }}"
+            DOCKER_RUN_CMD+=" -e FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS=${{ vars.FREE_PLAN_MAX_ACTIVE_CLIENT_CARDS }}"
+            DOCKER_RUN_CMD+=" -e FREE_PLAN_MAX_CARDS=${{ vars.FREE_PLAN_MAX_CARDS }}"
+            DOCKER_RUN_CMD+=" -e DATABASE_URL=${{ secrets.DATABASE_URL }}"
+            DOCKER_RUN_CMD+=" my-api-test"
+            
+            # Execute the constructed command
+            eval "$DOCKER_RUN_CMD"
+          my-api-test
+          
+          sleep 10
+          
           if [ "$(docker inspect -f '{{.State.Running}}' my-api-test-container)" != "true" ]; then
             echo "Container failed to start."
             docker logs my-api-test-container
             exit 1
           fi
+          
           echo "Container started successfully."
+
+          # Stop and remove the test container
+          docker stop my-api-test-container
+          docker rm my-api-test-container
